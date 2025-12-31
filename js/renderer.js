@@ -10,7 +10,3 @@ export function makeRenderer(){
     return renderer;
 }
 
-export function animate(renderer, scene, camera) {
-  requestAnimationFrame(animate);
-  renderer.render(scene, camera);
-}
