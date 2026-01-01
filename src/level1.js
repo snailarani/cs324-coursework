@@ -9,7 +9,7 @@ const wallThickness = 0.2;
 const corridorleft = -3;
 
 
-export function makeLevel1(){
+export function makeLevel1(camera){
     // Scene set up
     const scene = new THREE.Scene();
     const objects = [];
@@ -182,6 +182,13 @@ export function makeLevel1(){
     objects.push(boxCrate4);
 
 
+    //torches    
+    const torch1 = Env.createTorch(roomSize/2-wallThickness, 2, 0, 0); // left wall
+    scene.add(torch1);
+
+    const torch2 = Env.createTorch(roomSize/3, 2, -roomSize/2+wallThickness, Math.PI/2); // left wall
+    scene.add(torch2);
+
     //center pole
     const poleGeometry = new THREE.CylinderGeometry(1, 1, roomHeight, 16);
     const pole = new THREE.Mesh(poleGeometry, wallMaterial);
@@ -192,18 +199,25 @@ export function makeLevel1(){
     objects.push(pole);
 
     // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.025)
     scene.add(ambientLight)
 
-    //sun
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(-8, 4, 0);
-    light.castShadow = true;
-    scene.add(light);
 
-    scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
-    scene.add(new THREE.GridHelper(18, 18)); // grid on the ground
+    //player torch
+    const torch = new THREE.SpotLight(0xffaa33); 
+    torch.castShadow = true;
+    torch.angle = Math.PI / 6;
+    torch.intensity = 2;
+    torch.decay = 1;
+    torch.penumbra = 0.35;
+    camera.add(torch);
+    torch.position.set(0, -0.15, -0.15);
 
+    const torchTarget = new THREE.Object3D();
+    torchTarget.position.set(0, -0.15, -1);
+
+    camera.add(torchTarget);
+    torch.target = torchTarget;
 
     return {scene, objects};
 

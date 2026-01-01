@@ -24,7 +24,7 @@ document.body.appendChild(renderer.domElement);
 
 
 // Create Scene object
-const {scene, objects} = makeLevel1();
+const {scene, objects} = makeLevel1(camera);
 
 
 // Create controls object

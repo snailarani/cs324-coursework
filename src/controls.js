@@ -7,7 +7,6 @@ let moveForward = false;
 let moveBackward = false;
 let moveRight = false;
 let moveLeft = false;
-let jump = false;
 
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
@@ -119,13 +118,6 @@ export function updateControls(delta, controls, objects, camera){
 
     // Handling collisions
 
-    // // Debug logging
-    // if (moveLeft || moveRight) {
-    //     console.log('Moving:', moveLeft ? 'LEFT' : 'RIGHT');
-    //     console.log('direction.x:', direction.x);
-    //     console.log('velocity.x:', velocity.x);
-    // }
-
     // Get camera direction first
     controls.getDirection(forwardDir);
     
@@ -156,13 +148,7 @@ export function updateControls(delta, controls, objects, camera){
         ray_right.ray.direction.copy(dirX);
         const intersections = ray_right.intersectObjects(objects, true);
         blockedRight = intersections.length > 0;
-        
-        // console.log('rightVector:', rightVector, 'dirX:', dirX, 'intersections:', intersections.length);
     } 
-    // else if (moveLeft || moveRight) {
-        // console.log('velocity.x is 0 but keys are pressed!');
-    // }
-
 
     // Move if no collisions
     if (!blockedForward) {

@@ -125,57 +125,49 @@ export function makeCrateStack(pos, baseSize, materials){
 }
 
 
-// export function randomCratePlacement(scene, objects, bounds, numCrates, materials) {
-//     const placements = []; // Store Box3 objects
-//     const attempts = numCrates * 50;
-//     let placed = 0;
+export function createTorch(x, y, z, rotateY) {
+  const torchGroup = new THREE.Group();
+  torchGroup.position.set(x, y, z);
+  torchGroup.rotateY(rotateY);
 
-//     for (let i = 0; i < attempts && placed < numCrates; i++) {
-//         // Random position within bounds
-//         const x = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
-//         const z = bounds.minZ + Math.random() * (bounds.maxZ - bounds.minZ);
-        
-//         // Random crate type
-//         const isSmall = Math.random() > 0.5;
-//         const material = materials[Math.floor(Math.random() * materials.length)];
-        
-//         // Create the crate
-//         const crate = isSmall ? 
-//             makeSmallCrate(new THREE.Vector3(x, 0, z), material) :
-//             makeBigCrate(new THREE.Vector3(x, 0, z), material);
-        
-//         // Get bounding box
-//         const crateBox = new THREE.Box3().setFromObject(crate);
-        
-//         // Add padding
-//         const padding = 0.5;
-//         crateBox.expandByScalar(padding);
-        
-//         // Check if valid placement
-//         if (isValidBox3Placement(crateBox, placements, bounds)) {
-//             scene.add(crate);
-//             objects.push(crate);
-//             placements.push(crateBox);
-//             placed++;
-//         }
-//     }
-    
-//     return placed;
-// }
+  // Torch stick
+  const stickGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8);
+  const stickMaterial = new THREE.MeshStandardMaterial({ color: 0x4a2511 });
+  const stick = new THREE.Mesh(stickGeometry, stickMaterial);
+  
+  // Flame
+  const flameGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+  const flameMaterial = new THREE.MeshStandardMaterial({
+    color: 0xff6600,
+    emissive: 0xff6600,
+    emissiveIntensity: 1
+  });
+  const flame = new THREE.Mesh(flameGeometry, flameMaterial);
+  flame.position.y = 0.3;
+  
+  // Point light for light source
+  const light = new THREE.PointLight(0xff9944, 0.8, 5); // orange color, intensity, distance
+  light.position.y = 0.3;
+  light.castShadow = true;
+  
+  torchGroup.add(stick);
+  torchGroup.add(flame);
+  torchGroup.add(light);
 
-// function isValidBox3Placement(crateBox, existingBoxes, bounds) {
-//     // Check bounds
-//     if (crateBox.min.x < bounds.minX || crateBox.max.x > bounds.maxX ||
-//         crateBox.min.z < bounds.minZ || crateBox.max.z > bounds.maxZ) {
-//         return false;
-//     }
-    
-//     // Check against existing boxes
-//     for (const existingBox of existingBoxes) {
-//         if (crateBox.intersectsBox(existingBox)) {
-//             return false;
-//         }
-//     }
-    
-//     return true;
-// }
+  torchGroup.castShadow = true;
+  torchGroup.rotateZ(Math.PI / 5);  //slanted to stick out from wall
+  
+  
+  return torchGroup;
+}
+
+export function playerTorch(camera) {
+    const torch = new THREE.SpotLight(0xffaa33); 
+    torch.castShadow = true;
+
+    camera.add(torch);
+    torch.position.set(0, 1.7, -0.5);
+
+    return torch
+
+}
