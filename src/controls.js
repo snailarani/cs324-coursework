@@ -35,14 +35,11 @@ export function makeControls(camera){
     controls.addEventListener( 'lock', function () {
         instructions.style.display = 'none';
         blocker.style.display = 'none';
-
     } );
 
     controls.addEventListener( 'unlock', function () {
-
-        blocker.style.display = 'block';
-        instructions.style.display = '';
-
+        blocker.style.display = 'flex';  
+        instructions.style.display = 'flex';  
     } );
 
     // Movement
