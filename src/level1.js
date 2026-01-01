@@ -3,10 +3,10 @@ import * as Env from './environment.js';
 import { makeMaterial } from './utils.js';
 
 
-const roomSize = 21;
-const roomHeight = 5;
+const roomSize = 18;
+const roomHeight = 4;
 const wallThickness = 0.2;
-const corridorleft = -3.5;
+const corridorleft = -3;
 
 
 export function makeLevel1(){
@@ -19,8 +19,8 @@ export function makeLevel1(){
      //floor
     const floorMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipfloorcol.jpg',
-        roughnessScr: 'assets/textures/shipfloorrough.jpg',
-        normalScr: 'assets/textures/shipfloornorm.jpg',
+        roughnessSrc: 'assets/textures/shipfloorrough.jpg',
+        normalSrc: 'assets/textures/shipfloornorm.jpg',
         repeat: [5,5],
     })
 
@@ -32,8 +32,8 @@ export function makeLevel1(){
     // walls
     const wallMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipwallcol.jpg',
-        roughnessScr: 'assets/textures/shipwallrough.jpg',
-        normalScr: 'assets/textures/shipwallnorm.jpg',
+        roughnessSrc: 'assets/textures/shipwallrough.jpg',
+        normalSrc: 'assets/textures/shipwallnorm.jpg',
         repeat: [2,0.5],
     })
 
@@ -60,8 +60,8 @@ export function makeLevel1(){
     //roof
     const roofMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipwallcol.jpg',
-        roughnessScr: 'assets/textures/shipwallrough.jpg',
-        normalScr: 'assets/textures/shipwallnorm.jpg',
+        roughnessSrc: 'assets/textures/shipwallrough.jpg',
+        normalSrc: 'assets/textures/shipwallnorm.jpg',
         repeat: [5,5],
     })
 
@@ -72,7 +72,7 @@ export function makeLevel1(){
 
 
     //inner walls
-    const doorway1 = Env.makeWallWithDoorway(new THREE.Vector3(corridorleft, roomHeight/2, 7), roomSize/3, roomHeight, wallThickness, 2.5, 3, wallMaterial);
+    const doorway1 = Env.makeWallWithDoorway(new THREE.Vector3(corridorleft, roomHeight/2, roomSize/3), roomSize/3, roomHeight, wallThickness, 2.5, 3, wallMaterial);
     doorway1.rotateY( - Math.PI / 2 );
     scene.add(doorway1);
     objects.push(doorway1);
@@ -82,19 +82,19 @@ export function makeLevel1(){
     scene.add(doorway2);
     objects.push(doorway2);
 
-    const doorway3 = Env.makeWallWithDoorway(new THREE.Vector3(corridorleft, roomHeight/2, -7), roomSize/3, roomHeight, wallThickness, 2.5, 3, wallMaterial);
+    const doorway3 = Env.makeWallWithDoorway(new THREE.Vector3(corridorleft, roomHeight/2, -roomSize/3), roomSize/3, roomHeight, wallThickness, 2.5, 3, wallMaterial);
     doorway3.rotateY( - Math.PI / 2 );
     scene.add(doorway3);
     objects.push(doorway3);
 
 
-    const innerWall1 = Env.makeWall(new THREE.Vector3(corridorleft*2, roomHeight/2, 3.5), wallThickness, roomHeight, roomSize/3, wallMaterial);
+    const innerWall1 = Env.makeWall(new THREE.Vector3(corridorleft*2, roomHeight/2, roomSize/6), wallThickness, roomHeight, roomSize/3, wallMaterial);
     innerWall1.rotateY( - Math.PI / 2 );
     scene.add(innerWall1);
     objects.push(innerWall1);
 
 
-    const innerWall2 = Env.makeWall(new THREE.Vector3(corridorleft*2, roomHeight/2,-3.5), roomSize/3, roomHeight, wallThickness, wallMaterial);
+    const innerWall2 = Env.makeWall(new THREE.Vector3(corridorleft*2, roomHeight/2,-roomSize/6), roomSize/3, roomHeight, wallThickness, wallMaterial);
     scene.add(innerWall2);
     objects.push(innerWall2);  
 
@@ -109,6 +109,88 @@ export function makeLevel1(){
     objects.push(doorway5);
 
 
+    //objects
+    const crateMaterial1 = makeMaterial({
+        textureSrc: 'assets/textures/crate1col.jpg',
+        roughnessSrc: 'assets/textures/crate1rough.jpg',
+        normalSrc: 'assets/textures/crate1norm.jpg',
+        roughness: 0.7,
+        repeat: [1,1],
+    })
+
+    const crateMaterial2 = makeMaterial({
+        textureSrc: 'assets/textures/crate2col.jpg',
+        roughnessSrc: 'assets/textures/crate2rough.jpg',
+        normalSrc: 'assets/textures/crate2norm.jpg',
+        roughness: 0.7,
+        repeat: [1,1],
+    })
+
+    //room 1
+    const crateStack1 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+1,0,roomSize/2-1), 1.3, [crateMaterial1, crateMaterial2]);
+    scene.add(crateStack1);
+    objects.push(crateStack1);
+
+    const bigCrate1 = Env.makeBigCrate(new THREE.Vector3(-roomSize/3+1.5,0,roomSize/3-2), crateMaterial1);
+    bigCrate1.rotateY(Math.PI/2);
+    scene.add(bigCrate1);
+    objects.push(bigCrate1);
+
+
+    //room 2
+    const crateStack2 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+2,0,0), 1, [crateMaterial1, crateMaterial2]);
+    crateStack2.rotateY(Math.PI/4);
+    scene.add(crateStack2);
+    objects.push(crateStack2);
+
+    const bigCrate2 = Env.makeBigCrate(new THREE.Vector3(-roomSize/6-2,0,roomSize/6-1), crateMaterial1);
+    bigCrate2.rotateY(Math.PI/2);
+    scene.add(bigCrate2);
+    objects.push(bigCrate2);
+
+    const boxCrate2 = Env.makeBoxCrate(new THREE.Vector3(-roomSize/3+2,0,-roomSize/6+1), 1.2, crateMaterial2);
+    scene.add(boxCrate2);
+    objects.push(boxCrate2);
+
+
+    //room 3
+    const crateStack3 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+1.5,0,-roomSize/2+1.5), 1.2, [crateMaterial1, crateMaterial2]);
+    crateStack3.rotateY(-Math.PI/2);
+    scene.add(crateStack3);
+    objects.push(crateStack3);
+
+    const crateStack4 = Env.makeCrateStack(new THREE.Vector3(-roomSize/6-2.5,0,-roomSize/6-0.5), 0.8, [crateMaterial1, crateMaterial2]);
+    scene.add(crateStack4);
+    objects.push(crateStack4);
+
+    const boxCrate3 = Env.makeBoxCrate(new THREE.Vector3(-roomSize/6-0.5,0,-roomSize/6-0.5), 0.7, crateMaterial2);
+    scene.add(boxCrate3);
+    objects.push(boxCrate3);
+
+    //room4
+    const crateStack5 = Env.makeCrateStack(new THREE.Vector3(roomSize/6+1,0,-4), 1, [crateMaterial1, crateMaterial2]);
+    crateStack5.rotateY(-Math.PI/2);
+    scene.add(crateStack5);
+    objects.push(crateStack5);
+
+    const bigCrate3 = Env.makeBigCrate(new THREE.Vector3(roomSize/2-1,0,0), crateMaterial1);
+    scene.add(bigCrate3);
+    objects.push(bigCrate3);
+
+    const boxCrate4 = Env.makeBoxCrate(new THREE.Vector3(roomSize/2-1,0,2), 1.1, crateMaterial1);
+    scene.add(boxCrate4);
+    objects.push(boxCrate4);
+
+
+    //center pole
+    const poleGeometry = new THREE.CylinderGeometry(1, 1, roomHeight, 16);
+    const pole = new THREE.Mesh(poleGeometry, wallMaterial);
+    pole.position.set(0, roomHeight/2, 0);
+    pole.castShadow = true;
+    pole.receiveShadow = true;
+    scene.add(pole);
+    objects.push(pole);
+
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 1)
     scene.add(ambientLight)
@@ -118,6 +200,10 @@ export function makeLevel1(){
     light.position.set(-8, 4, 0);
     light.castShadow = true;
     scene.add(light);
+
+    scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
+    scene.add(new THREE.GridHelper(18, 18)); // grid on the ground
+
 
     return {scene, objects};
 

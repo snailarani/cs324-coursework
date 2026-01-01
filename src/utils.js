@@ -4,11 +4,11 @@ export function makeMaterial(options = {}){
     const{
         color = null,
         textureSrc = null,
-        roughnessScr = null,
-        nomralScr = null,
+        roughnessSrc = null,
+        normalSrc = null,
         repeat = [1,1],
-        roughness = 0.8,
-        metalness = 0.0,
+        roughness = 0.5,
+        metalness = 0.15,
         normalScale = 1.0,
     } = options;
 
@@ -23,12 +23,14 @@ export function makeMaterial(options = {}){
         textureParams.map.colorSpace = THREE.SRGBColorSpace;
     }
 
-    if(roughnessScr!=null){
-        textureParams.roughnessMap = loadTexture(roughnessScr, repeat);
+    if(roughnessSrc!=null){
+        textureParams.roughnessMap = loadTexture(roughnessSrc, repeat);
+        textureParams.roughnessMap.colorSpace = THREE.NoColorSpace;
     }
 
-    if(nomralScr!=null){
-        const normalMap = loadTexture(nomralScr, repeat);
+    if(normalSrc!=null){
+        const normalMap = loadTexture(normalSrc, repeat);
+        normalMap.colorSpace = THREE.NoColorSpace;
         textureParams.normalMap = normalMap;
         textureParams.normalScale = new THREE.Vector2(normalScale, normalScale);
     }
