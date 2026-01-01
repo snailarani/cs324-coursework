@@ -2,6 +2,7 @@ import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js";
 import { PointerLockControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/PointerLockControls.js";
 
 //TODO: add bobbing up and down when walking (don't shift the camera up/down, you'll drift, use sine wave from set base height (camera height))
+//TODO: Change raycast position for level 2 (make it chest height not feet height)
 
 let moveForward = false;
 let moveBackward = false;
@@ -16,9 +17,10 @@ let forwardDir = new THREE.Vector3;
 let rightDir = new THREE.Vector3;
 
 let playerRadius = 0.5
-// let ray_down = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, playerRadius );
 let ray_forward = new THREE.Raycaster( new THREE.Vector3(), forwardDir, 0, playerRadius );
 let ray_right = new THREE.Raycaster( new THREE.Vector3(), rightDir, 0, playerRadius );
+
+const ray_offset = 0; // offset ray origin from camera (level 1, this is 1, level 2 this is 0)
 
 
 export function makeControls(camera){
@@ -132,7 +134,7 @@ export function updateControls(delta, controls, objects, camera){
     if (velocity.z !== 0) {
         const dirZ = horizontalForward.clone().multiplyScalar(-Math.sign(velocity.z)); // right or left
         ray_forward.ray.origin.copy(playerPos);
-        ray_forward.ray.origin.y -= 1; // ray from chest position
+        ray_forward.ray.origin.y -= ray_offset; // ray from chest position
         ray_forward.ray.direction.copy(dirZ);
         blockedForward = ray_forward.intersectObjects(objects, true).length > 0;
     }
@@ -144,7 +146,7 @@ export function updateControls(delta, controls, objects, camera){
     if (velocity.x !== 0) {
         const dirX = rightVector.clone().multiplyScalar(-Math.sign(velocity.x)); // forward or backward
         ray_right.ray.origin.copy(playerPos);
-        ray_right.ray.origin.y -= 1; // ray from chest position
+        ray_right.ray.origin.y -= ray_offset; // ray from chest position
         ray_right.ray.direction.copy(dirX);
         const intersections = ray_right.intersectObjects(objects, true);
         blockedRight = intersections.length > 0;

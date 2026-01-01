@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
+import { makeMaterial } from './utils.js';
 
 
 export function makeFloor(y, w, d, material){
@@ -40,6 +41,9 @@ export function makeWallWithDoorway(pos, w, h, d, doorW, doorH, material){
     wallGroup.add(rightWall);
     wallGroup.add(topWall);
 
+    wallGroup.castShadow = true;
+    wallGroup.receiveShadow = true;
+
     return wallGroup;
 }
 
@@ -77,6 +81,9 @@ export function makeCrate(pos, w, h, d, material, options = {}){
     lidBot.castShadow = true;
     lidBot.receiveShadow = true;
     crateGroup.add(lidBot);
+
+    crateGroup.castShadow = true;
+    crateGroup.receiveShadow = true;
 
     return crateGroup;
 }
@@ -119,6 +126,9 @@ export function makeCrateStack(pos, baseSize, materials){
     randMaterial = materials[Math.floor(Math.random() * materials.length)];
     const topCrate = makeBoxCrate(new THREE.Vector3(0, baseSize+0.08, 0), baseSize, randMaterial);
     stackGroup.add(topCrate);
+
+    stackGroup.castShadow = true;
+    stackGroup.receiveShadow = true;
 
     return stackGroup;
 
@@ -171,3 +181,76 @@ export function playerTorch(camera) {
     return torch
 
 }
+
+
+// level 2 objects
+export function makeIceTree(pos, scale){
+    const treeGroup = new THREE.Group();
+    treeGroup.position.set(pos.x, pos.y, pos.z);
+    treeGroup.scale.set(scale, scale, scale);
+
+    const trunkmaterial = makeMaterial({
+        color: 0x452f29,
+    });
+
+    const treeMaterial = makeMaterial({
+        color: 0x5aa1f2,
+        textureSrc: 'assets/textures/treecol.jpg',
+        roughnessSrc: 'assets/textures/treerough.jpg',
+        normalSrc: 'assets/textures/treenorm.jpg',
+        roughness: 0.1,
+        metalness: 0.9,
+        repeat: [10,10],
+    });
+    treeMaterial.envMapIntensity = 2;
+    treeMaterial.emissive = new THREE.Color(0x5aa1f2);
+    treeMaterial.emissiveIntensity = 0.05;
+    treeMaterial.needsUpdate = true;
+
+    const trunkGeometry = new THREE.CylinderGeometry(0.25, 0.25, 1, 16);
+    const trunk = new THREE.Mesh(trunkGeometry, trunkmaterial);
+    trunk.position.set(0, 0.6, 0);
+    trunk.castShadow = true;
+    trunk.receiveShadow = true;
+    treeGroup.add(trunk);
+
+    const treeGeometry = new THREE.ConeGeometry(1.5, 5, 32);
+    const tree = new THREE.Mesh(treeGeometry, treeMaterial);
+    tree.position.set(0, 3.5, 0);
+    tree.castShadow = true;
+    tree.receiveShadow = true;
+    treeGroup.add(tree);
+
+    return treeGroup;
+}
+
+export function makeGlowRocks(pos, scale){
+    const rockGroup = new THREE.Group();
+    rockGroup.position.set(pos.x, pos.y, pos.z);
+
+    const rockMaterial = makeMaterial({
+        color: 0x888888,
+    });
+    rockMaterial.emissive = new THREE.Color(0xbda915);
+    rockMaterial.emissiveIntensity = 1;
+    rockMaterial.needsUpdate = true;
+
+    const randGeometry = Math.floor(Math.random()*3+1);
+    const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
+    const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+    rock.position.set(0,0,0);
+    rock.castShadow = true;
+    rock.receiveShadow = true;
+    rockGroup.add(rock);
+
+    //TODO: randomise light colour
+    const light = new THREE.PointLight(0xbda915, 1, 20); // blueish light
+    light.position.set(0, 0.2, 0);
+    light.castShadow = true;
+    rockGroup.add(light);
+
+    return rockGroup;
+}
+
+
+

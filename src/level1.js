@@ -8,6 +8,8 @@ const roomHeight = 4;
 const wallThickness = 0.2;
 const corridorleft = -3;
 
+//TODO: fix weird texture stretching on walls with doorways
+//TODO: randomise crate textures 
 
 export function makeLevel1(camera){
     // Scene set up
@@ -199,15 +201,15 @@ export function makeLevel1(camera){
     objects.push(pole);
 
     // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.025)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
     scene.add(ambientLight)
 
 
     //player torch
     const torch = new THREE.SpotLight(0xffaa33); 
     torch.castShadow = true;
-    torch.angle = Math.PI / 6;
-    torch.intensity = 2;
+    torch.angle = Math.PI / 7;
+    torch.intensity = 3;
     torch.decay = 1;
     torch.penumbra = 0.35;
     camera.add(torch);
@@ -218,6 +220,32 @@ export function makeLevel1(camera){
 
     camera.add(torchTarget);
     torch.target = torchTarget;
+
+    // //Audio
+    // //TODO: move later?
+    // const listener = new THREE.AudioListener();
+    // camera.add( listener );
+    
+    // // load a sound and set it as the Audio object's buffer
+    // const audioLoader = new THREE.AudioLoader();
+
+    // const storm = new THREE.Audio( listener );
+    // audioLoader.load( 'assets/audio/waves.mp3', function( buffer ) {
+    //     storm.setBuffer(buffer);
+    //     storm.setLoop(true);
+    //     storm.setVolume(0.2);
+    //     storm.play();
+    // });
+    
+    // const waves = new THREE.Audio( listener );
+    // audioLoader.load( 'assets/audio/storm.mp3', function( buffer ) {
+    //     waves.setBuffer(buffer);
+    //     waves.setLoop(true);
+    //     waves.setVolume(0.5);
+    //     waves.play();
+    // });
+
+    
 
     return {scene, objects};
 
