@@ -31,6 +31,19 @@ export function makeControls(camera){
         controls.lock();
     });
 
+    controls.addEventListener( 'lock', function () {
+        instructions.style.display = 'none';
+        blocker.style.display = 'none';
+
+    } );
+
+    controls.addEventListener( 'unlock', function () {
+
+        blocker.style.display = 'block';
+        instructions.style.display = '';
+
+    } );
+
     // Movement
     const onKeyDown = function (event){
         switch(event.code){
@@ -127,7 +140,7 @@ export function updateControls(delta, controls, objects, camera){
     if (velocity.z !== 0) {
         const dirZ = horizontalForward.clone().multiplyScalar(-Math.sign(velocity.z)); // right or left
         ray_forward.ray.origin.copy(playerPos);
-        ray_forward.ray.origin.y -= 0.5; // ray from chest position
+        ray_forward.ray.origin.y -= 1; // ray from chest position
         ray_forward.ray.direction.copy(dirZ);
         blockedForward = ray_forward.intersectObjects(objects, true).length > 0;
     }
@@ -139,7 +152,7 @@ export function updateControls(delta, controls, objects, camera){
     if (velocity.x !== 0) {
         const dirX = rightVector.clone().multiplyScalar(-Math.sign(velocity.x)); // forward or backward
         ray_right.ray.origin.copy(playerPos);
-        ray_right.ray.origin.y -= 0.5; // ray from chest position
+        ray_right.ray.origin.y -= 1; // ray from chest position
         ray_right.ray.direction.copy(dirX);
         const intersections = ray_right.intersectObjects(objects, true);
         blockedRight = intersections.length > 0;

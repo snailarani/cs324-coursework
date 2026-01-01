@@ -36,13 +36,13 @@ export function makeScene(){
     const wallMaterial = new THREE.MeshPhongMaterial()
     wallMaterial.map = wallTexture
 
-    const leftWall = makeWall(new THREE.Vector3(-10, 1.5, 0), 0.2, 4, 20, wallMaterial);
-    const rightWall = makeWall(new THREE.Vector3(10, 1.5, 0), 0.2, 4, 20, wallMaterial);
+    const leftWall = makeWall(new THREE.Vector3(-10, 2.5, 0), 0.2, 5, 20, wallMaterial);
+    const rightWall = makeWall(new THREE.Vector3(10, 2.5, 0), 0.2, 5, 20, wallMaterial);
 
-    const frontWall = makeWall(new THREE.Vector3(0, 1.5, -10), 0.2, 4, 20, wallMaterial);
+    const frontWall = makeWall(new THREE.Vector3(0, 2.5, -10), 0.2, 5, 20, wallMaterial);
     frontWall.rotateY( - Math.PI / 2 );
     
-    const backWall = makeWall(new THREE.Vector3(0, 1.5, 10), 0.2, 4, 20, wallMaterial);
+    const backWall = makeWall(new THREE.Vector3(0, 2.5, 10), 0.2, 5, 20, wallMaterial);
     backWall.rotateY( - Math.PI / 2 );
     
     scene.add(leftWall);
@@ -56,21 +56,36 @@ export function makeScene(){
     objects.push(backWall);
 
 
+    //roof
+    const roofTexture = new THREE.TextureLoader().load('assets/shipwall.png')
+    const roofMaterial = new THREE.MeshPhongMaterial()
+    roofMaterial.map = roofTexture
+
+    const roof = makeWall(new THREE.Vector3(0, 5, 0), 0.2, 20, 20, roofMaterial);
+    roofTexture.wrapS = roofTexture.wrapT = THREE.RepeatWrapping;
+    roofTexture.repeat.set(5, 5);
+    roof.rotateZ( - Math.PI / 2 );
+    scene.add(roof)
+
+
     // crates
-    const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-    const crate = makeCrate(new THREE.Vector3(0,0.4,0), 0.8, 0.8, 0.8, cubeMaterial);
+    const crateTexture =  new THREE.TextureLoader().load('assets/crate1.jpg')
+    const crateMaterial = new THREE.MeshPhongMaterial()
+    crateMaterial.map = crateTexture
+
+    const crate = makeCrate(new THREE.Vector3(0,0.0,0), 1.5, 1.5, 1.5, crateMaterial);
     scene.add(crate);
     objects.push(crate);
 
     // Light
 
     // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.25)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
     scene.add(ambientLight)
 
-
+    
     const light = new THREE.DirectionalLight(0xffffff, 2);
-    light.position.set(5, 10, 5);
+    light.position.set(0, 4, 0);
     light.castShadow = true;
     scene.add(light);
 
