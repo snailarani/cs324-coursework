@@ -11,7 +11,7 @@ let jump = false;
 
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
-const speed = 13
+const speed = 23
 
 let forwardDir = new THREE.Vector3;
 let rightDir = new THREE.Vector3;
@@ -102,6 +102,8 @@ export function updateControls(delta, controls, objects, camera){
     if ( moveForward || moveBackward ) velocity.z -= direction.z * speed * delta;
     if ( moveLeft || moveRight ) velocity.x -= direction.x * speed * delta;
 
+
+
     // Handling collisions
 
     // Debug logging
@@ -148,8 +150,7 @@ export function updateControls(delta, controls, objects, camera){
     }
 
 
-
-
+    // Move if no collisions
     if (!blockedForward) {
         controls.moveForward(-velocity.z * delta);
     }
