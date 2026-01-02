@@ -1,0 +1,44 @@
+# WaveFront *.mtl file (edited for Three.js)
+
+newmtl METAL
+illum 2
+Kd 1.0 1.0 1.0
+Ka 0.0 0.0 0.0
+Ks 0.0 0.0 0.0
+d 1.0
+
+map_Kd METAL_albedo.jpeg
+map_Bump METAL_normal.png
+
+
+newmtl BELT
+illum 2
+Kd 1.0 1.0 1.0
+Ka 0.0 0.0 0.0
+Ks 0.0 0.0 0.0
+d 1.0
+
+map_Kd BELT_albedo.jpeg
+map_Bump BELT_normal.png
+
+
+newmtl TOP
+illum 2
+Kd 1.0 1.0 1.0
+Ka 0.0 0.0 0.0
+Ks 0.0 0.0 0.0
+d 1.0
+
+map_Kd TOP_albedo.jpeg
+map_Bump TOP_normal.png
+
+
+newmtl BOTTOM
+illum 2
+Kd 1.0 1.0 1.0
+Ka 0.0 0.0 0.0
+Ks 0.0 0.0 0.0
+d 1.0
+
+map_Kd BOTTOM_albedo.jpeg
+map_Bump BOTTOM_normal.png

@@ -1,5 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
-import { makeMaterial } from './utils.js';
+// import PoissonDiskSampling from 'poisson-disk-sampling';
+import { makeMaterial, randomRGB } from './utils.js';
 
 
 export function makeFloor(y, w, d, material){
@@ -189,22 +190,18 @@ export function makeIceTree(pos, scale){
     treeGroup.position.set(pos.x, pos.y, pos.z);
     treeGroup.scale.set(scale, scale, scale);
 
-    const trunkmaterial = makeMaterial({
-        color: 0x452f29,
-    });
+    // const trunkmaterial = makeMaterial({
+    //     color: 0x452f29,
+    // });
 
-    const treeMaterial = makeMaterial({
-        color: 0x5aa1f2,
-        textureSrc: 'assets/textures/treecol.jpg',
-        roughnessSrc: 'assets/textures/treerough.jpg',
-        normalSrc: 'assets/textures/treenorm.jpg',
-        roughness: 0.1,
-        metalness: 0.9,
-        repeat: [10,10],
-    });
+    // const treeMaterial = makeMaterial({
+    //     color:new THREE.Color(1, 0, 0),
+    //     roughness: 0,
+    //     metalness: 0,
+    // });
+    const trunkmaterial = makeMaterial({color: 0x452f29});
+    const treeMaterial = makeMaterial({color: 0x5aa1f2});
     treeMaterial.envMapIntensity = 2;
-    treeMaterial.emissive = new THREE.Color(0x5aa1f2);
-    treeMaterial.emissiveIntensity = 0.05;
     treeMaterial.needsUpdate = true;
 
     const trunkGeometry = new THREE.CylinderGeometry(0.25, 0.25, 1, 16);
@@ -228,29 +225,26 @@ export function makeGlowRocks(pos, scale){
     const rockGroup = new THREE.Group();
     rockGroup.position.set(pos.x, pos.y, pos.z);
 
-    const rockMaterial = makeMaterial({
-        color: 0x888888,
-    });
-    rockMaterial.emissive = new THREE.Color(0xbda915);
-    rockMaterial.emissiveIntensity = 1;
-    rockMaterial.needsUpdate = true;
+    const randCol = randomRGB();
 
-    const randGeometry = Math.floor(Math.random()*3+1);
-    const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
-    const rock = new THREE.Mesh(rockGeometry, rockMaterial);
-    rock.position.set(0,0,0);
-    rock.castShadow = true;
-    rock.receiveShadow = true;
-    rockGroup.add(rock);
+    // const rockMaterial = makeMaterial({color: randCol});
+    // rockMaterial.emissive = randCol;
+    // rockMaterial.emissiveIntensity = 1;
+    // rockMaterial.needsUpdate = true;
 
-    //TODO: randomise light colour
-    const light = new THREE.PointLight(0xbda915, 1, 20); // blueish light
-    light.position.set(0, 0.2, 0);
+    // const randGeometry = Math.floor(Math.random()*3+1);
+    // const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
+    // const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+    // rock.position.set(0,0,0);
+    // rock.castShadow = true;
+    // rock.receiveShadow = true;
+    // rockGroup.add(rock);
+
+    const light = new THREE.PointLight(randCol, 0.3, 10, 2); // blueish light
+    light.position.set(0, scale-0.1, 0);
     light.castShadow = true;
     rockGroup.add(light);
 
     return rockGroup;
 }
-
-
 

@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import * as Env from './environment.js';
-import { makeMaterial } from './utils.js';
+import { loadObject, makeMaterial } from './utils.js';
 
 
 const roomSize = 18;
@@ -10,15 +10,49 @@ const corridorleft = -3;
 
 //TODO: fix weird texture stretching on walls with doorways
 //TODO: randomise crate textures 
+//TODO: add particles to flames
+//TODO: refactor code
 
-export function makeLevel1(camera){
-    // Scene set up
+export function makeLevel1(){
+    //set up camera
+    const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.set(0,1.7,roomSize/2-1);
+
+
+    //set up scene
     const scene = new THREE.Scene();
-    const objects = [];
-
     scene.background = new THREE.Color(0x79aaf7);
 
-     //floor
+
+    //lights
+    // Ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
+    scene.add(ambientLight)
+
+    //player light
+    const torch = new THREE.SpotLight(0xffaa33); 
+    torch.castShadow = true;
+    torch.angle = Math.PI / 7;
+    torch.intensity = 3;
+    torch.decay = 1;
+    torch.penumbra = 0.35;
+    camera.add(torch);
+    torch.position.set(0, -0.15, -0.15);
+
+    const torchTarget = new THREE.Object3D();
+    torchTarget.position.set(0, -0.15, -1);
+
+    camera.add(torchTarget);
+    torch.target = torchTarget;
+
+
+    const objects = [];
+    //floor
     const floorMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipfloorcol.jpg',
         roughnessSrc: 'assets/textures/shipfloorrough.jpg',
@@ -31,7 +65,7 @@ export function makeLevel1(camera){
     objects.push(floor);
 
 
-    // walls
+    //walls/boundaries
     const wallMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipwallcol.jpg',
         roughnessSrc: 'assets/textures/shipwallrough.jpg',
@@ -73,6 +107,13 @@ export function makeLevel1(camera){
     objects.push(roof);
 
 
+    //asset loading 
+    loadModels(scene, objects);
+
+
+
+
+    //other objects
     //inner walls
     const doorway1 = Env.makeWallWithDoorway(new THREE.Vector3(corridorleft, roomHeight/2, roomSize/3), roomSize/3, roomHeight, wallThickness, 2.5, 3, wallMaterial);
     doorway1.rotateY( - Math.PI / 2 );
@@ -110,8 +151,7 @@ export function makeLevel1(camera){
     scene.add(doorway5);
     objects.push(doorway5);
 
-
-    //objects
+        //Crates
     const crateMaterial1 = makeMaterial({
         textureSrc: 'assets/textures/crate1col.jpg',
         roughnessSrc: 'assets/textures/crate1rough.jpg',
@@ -183,6 +223,19 @@ export function makeLevel1(camera){
     scene.add(boxCrate4);
     objects.push(boxCrate4);
 
+    //corridor
+    const boxCrate5 = Env.makeBoxCrate(new THREE.Vector3(roomSize/6-1.5 ,0,roomSize/2-1.5), 1.6, crateMaterial1);
+    scene.add(boxCrate5);
+    objects.push(boxCrate5);
+
+    const bigCrate4 = Env.makeBigCrate(new THREE.Vector3(-roomSize/6+1,0,roomSize/6), crateMaterial1);
+    scene.add(bigCrate4);
+    objects.push(bigCrate4);
+
+    const crateStack6 = Env.makeCrateStack(new THREE.Vector3(roomSize/6-1,0,-roomSize/6), 1, [crateMaterial1, crateMaterial2]);
+    crateStack6.rotateY(Math.PI)
+    scene.add(crateStack6);
+    objects.push(crateStack6);
 
     //torches    
     const torch1 = Env.createTorch(roomSize/2-wallThickness, 2, 0, 0); // left wall
@@ -200,26 +253,21 @@ export function makeLevel1(camera){
     scene.add(pole);
     objects.push(pole);
 
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
-    scene.add(ambientLight)
+
+    //animation
 
 
-    //player torch
-    const torch = new THREE.SpotLight(0xffaa33); 
-    torch.castShadow = true;
-    torch.angle = Math.PI / 7;
-    torch.intensity = 3;
-    torch.decay = 1;
-    torch.penumbra = 0.35;
-    camera.add(torch);
-    torch.position.set(0, -0.15, -0.15);
 
-    const torchTarget = new THREE.Object3D();
-    torchTarget.position.set(0, -0.15, -1);
 
-    camera.add(torchTarget);
-    torch.target = torchTarget;
+
+
+
+    //game logic
+
+    
+
+
+    
 
     // //Audio
     // //TODO: move later?
@@ -246,7 +294,48 @@ export function makeLevel1(camera){
     // });
 
     
+    scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
+    scene.add(new THREE.GridHelper(roomSize, roomSize)); // grid on the ground
+    return {scene, objects, camera};
 
-    return {scene, objects};
+}
 
+
+
+async function loadModels(scene, objects){
+    const bed = await loadObject('./assets/models/bed/bed.obj', './assets/models/bed/bed.mtl', new THREE.Vector3(roomSize/3+1,0,roomSize/2-2.5), Math.PI, 0.045)
+    scene.add(bed)
+    objects.push(bed)
+
+    const barrel1 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(roomSize/6+0.8,0,3), Math.PI/2, 0.01)
+    scene.add(barrel1)
+    objects.push(barrel1)
+
+    const barrel2 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(roomSize/6+1,0,-6), Math.PI/2, 0.013)
+    scene.add(barrel2)
+    objects.push(barrel2)
+
+    const barrel3 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(-roomSize/6-0.8,0,-roomSize/2+1), Math.PI, 0.011)
+    scene.add(barrel3)
+    objects.push(barrel3)
+
+    const barrel4 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(roomSize/2-1,0,-roomSize/6), -Math.PI/2, 0.015)
+    scene.add(barrel4)
+    objects.push(barrel4)
+
+    const chest1 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(-8,0,roomSize/6+1), 0, 0.5)
+    scene.add(chest1)
+    objects.push(chest1)
+
+    const chest2 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(roomSize/3+2,0,roomSize/6+1), -Math.PI/2, 0.5)
+    scene.add(chest2)
+    objects.push(chest2)
+
+    const chest3 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(roomSize/6-1,0,roomSize/4+1), -Math.PI/2, 0.5)
+    scene.add(chest3)
+    objects.push(chest3)
+
+    const chest4 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(roomSize/3+1.5,0,-roomSize/2+2), -Math.PI/2, 0.7)
+    scene.add(chest4)
+    objects.push(chest4)
 }

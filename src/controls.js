@@ -20,7 +20,7 @@ let playerRadius = 0.5
 let ray_forward = new THREE.Raycaster( new THREE.Vector3(), forwardDir, 0, playerRadius );
 let ray_right = new THREE.Raycaster( new THREE.Vector3(), rightDir, 0, playerRadius );
 
-const ray_offset = 0; // offset ray origin from camera (level 1, this is 1, level 2 this is 0)
+const ray_offset = 1; // offset ray origin from camera (level 1, this is 1, level 2 this is 0)
 
 
 export function makeControls(camera){

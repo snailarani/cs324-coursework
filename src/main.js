@@ -6,15 +6,14 @@ import {makeControls, updateControls} from "./controls.js"
 
 const clock = new THREE.Clock()
 
-
 // Camera set up
-const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-);
-camera.position.set(0,1.7,8.5);
+// const camera = new THREE.PerspectiveCamera(
+//     75,
+//     window.innerWidth / window.innerHeight,
+//     0.1,
+//     1000
+// );
+// camera.position.set(0,1.7,0);
 
 
 // Create renderer
@@ -24,10 +23,11 @@ renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+const sky = null;
 
 // Create Scene object
-// const {scene, objects} = makeLevel1(camera);
-const {scene, objects} = makeLevel2(camera, renderer);
+const {scene, objects, camera} = makeLevel1();
+// const {scene, objects, sky} = makeLevel2(camera, renderer);
 
 
 // Create controls object
@@ -35,14 +35,17 @@ const controls = makeControls(camera);
 scene.add(controls.object);
 
 
-animate(renderer, scene, camera);
+animate(renderer, scene, camera, sky);
 
 
-function animate(renderer, scene, camera) {
+function animate(renderer, scene, camera, sky) {
     function loop() {
         requestAnimationFrame(loop);
         updateControls(clock.getDelta(), controls, objects, camera)
         renderer.render(scene, camera);
+        if(sky!=null){
+            sky.position.copy(camera.position)
+        }
     }
     loop();
 }
