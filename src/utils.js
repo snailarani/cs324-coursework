@@ -17,7 +17,7 @@ export function makeMaterial(options = {}){
         color = null,
         textureSrc = null,
         roughnessSrc = null,
-        normalScr = null,
+        normalSrc = null,
         repeat = [1,1],
         roughness = 0.5,
         metalness = 0.3,
@@ -42,8 +42,8 @@ export function makeMaterial(options = {}){
         textureParams.roughnessMap.colorSpace = THREE.NoColorSpace;
     }
 
-    if(normalScr!=null){
-        const normalMap = loadTexture(normalScr, repeat);
+    if(normalSrc!=null){
+        const normalMap = loadTexture(normalSrc, repeat);
         normalMap.colorSpace = THREE.NoColorSpace;
         textureParams.normalMap = normalMap;
         textureParams.normalScale = new THREE.Vector2(normalScale, normalScale);
@@ -51,7 +51,6 @@ export function makeMaterial(options = {}){
 
     const material = new THREE.MeshStandardMaterial(textureParams);
     return material;
-
 }
 
 function loadTexture(src, repeat){
