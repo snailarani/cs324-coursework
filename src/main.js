@@ -25,9 +25,8 @@ document.body.appendChild(renderer.domElement);
 
 const sky = null;
 
-// Create Scene object
-// const {scene, objects, camera} = makeLevel1();
-const {scene, objects, camera} = makeLevel2();
+const {scene, objects, camera} = makeLevel1();
+// const {scene, objects, camera} = makeLevel2();
 
 
 // Create controls object

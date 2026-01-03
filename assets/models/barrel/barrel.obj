@@ -1,6 +1,6 @@
 # This file uses centimeters as units for non-parametric coordinates.
 
-mtllib Medieval_Barrel.mtl
+mtllib barrel.mtl
 g default
 v 27.426252 107.205856 0.000022
 v 26.738615 107.205856 -6.102883

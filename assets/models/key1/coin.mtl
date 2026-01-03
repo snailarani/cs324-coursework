@@ -1,0 +1,11 @@
+# Material for Doubloon coin
+newmtl wire_097074059
+Ka 1.0 0.843 0.0        # Ambient - gold color
+Kd 1.0 0.843 0.0        # Diffuse - gold color
+Ks 1.0 1.0 0.8          # Specular - bright yellow-white shine
+Ns 200.0                # Shininess - high for metallic look
+d 1.0                   # Opacity - fully opaque
+illum 2                 # Illumination model
+
+map_Kd coincol.png
+map_Bump coinnorm.png

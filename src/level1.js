@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import * as Env from './environment.js';
-import { loadObject, makeMaterial } from './utils.js';
+import { loadObject, loadAudio, makeMaterial } from './utils.js';
 
 
 const roomSize = 18;
@@ -29,10 +29,16 @@ export function makeLevel1(){
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x79aaf7);
 
+    //set up sound listener
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    loadSounds(listener);
+
 
     //lights
     // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.03)
     scene.add(ambientLight)
 
     //player light
@@ -245,6 +251,9 @@ export function makeLevel1(){
     const torch2 = Env.createTorch(roomSize/3, 2, -roomSize/2+wallThickness, Math.PI/2); // left wall
     scene.add(torch2);
 
+    const torch3 = Env.createTorch(0, 3.3, -roomSize/2+wallThickness, Math.PI/2); // left wall
+    scene.add(torch3);
+
     //center pole
     const poleGeometry = new THREE.CylinderGeometry(1, 1, roomHeight, 16);
     const pole = new THREE.Mesh(poleGeometry, wallMaterial);
@@ -253,6 +262,38 @@ export function makeLevel1(){
     pole.receiveShadow = true;
     scene.add(pole);
     objects.push(pole);
+
+
+    //door
+    const doorMaterial = makeMaterial({
+        textureSrc : './assets/textures/door1/doorcol.jpg',
+        roughnessSrc : './assets/textures/door1/doorrough.jpg',
+        normalSrcSrc : './assets/textures/door1/doornorm.jpg',
+        roughness: 0.7,
+        metalness: 0.1,
+        repeat: [1,2],
+    });
+
+    const frameMaterial = makeMaterial({
+        textureSrc : './assets/textures/door1/framecol.jpg',
+        roughnessSrc : './assets/textures/door1/framerough.jpg',
+        normalSrcSrc : './assets/textures/door1/framenorm.jpg',
+        roughness: 0.7,
+        metalness: 0.1,
+    });
+
+    const knobMaterial = makeMaterial({
+        textureSrc : './assets/textures/door1/knobcol.jpg',
+        roughnessSrc : './assets/textures/door1/knobrough.jpg',
+        normalSrcSrc : './assets/textures/door1/knobnorm.jpg',
+        metalness: 0.5,
+    })
+
+
+    const door = Env.makeDoor(new THREE.Vector3(0, 0, -roomSize/2+0.1), doorMaterial, frameMaterial, knobMaterial, 1.1);
+    scene.add(door);
+    objects.push(door);
+
 
 
     //animation
@@ -265,34 +306,7 @@ export function makeLevel1(){
 
     //game logic
 
-    
 
-
-    
-
-    // //Audio
-    // //TODO: move later?
-    // const listener = new THREE.AudioListener();
-    // camera.add( listener );
-    
-    // // load a sound and set it as the Audio object's buffer
-    // const audioLoader = new THREE.AudioLoader();
-
-    // const storm = new THREE.Audio( listener );
-    // audioLoader.load( 'assets/audio/waves.mp3', function( buffer ) {
-    //     storm.setBuffer(buffer);
-    //     storm.setLoop(true);
-    //     storm.setVolume(0.2);
-    //     storm.play();
-    // });
-    
-    // const waves = new THREE.Audio( listener );
-    // audioLoader.load( 'assets/audio/storm.mp3', function( buffer ) {
-    //     waves.setBuffer(buffer);
-    //     waves.setLoop(true);
-    //     waves.setVolume(0.5);
-    //     waves.play();
-    // });
 
     
     // scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
@@ -339,4 +353,15 @@ async function loadModels(scene, objects){
     const chest4 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(roomSize/3+1.5,0,-roomSize/2+2), -Math.PI/2, 0.7)
     scene.add(chest4)
     objects.push(chest4)
+
+    const coin = await loadObject('./assets/models/key1/coin.obj', './assets/models/key1/coin.mtl', new THREE.Vector3(0,1,5), -Math.PI/2, 0.1)
+}
+
+
+async function loadSounds(listener) {
+    const storm = await loadAudio('./assets/audio/storm.mp3', listener, {loop:true, volume:0.4, autoplay:true});
+    const waves = await loadAudio('./assets/audio/waves.mp3', listener, {loop:true, volume:0.3, autoplay:true});
+    const floor = await loadAudio('./assets/audio/floor1.mp3', listener, {});
+    const door = await loadAudio('./assets/audio/door1.wav', listener, {});
+    const keys = await loadAudio('./assets/audio/keys1.mp3', listener, {});
 }

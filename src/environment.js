@@ -3,6 +3,53 @@ import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import { makeMaterial, randomRGB } from './utils.js';
 
 
+export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, scale=1, rot=0){
+    const doorGroup = new THREE.Group();
+    doorGroup.rotateY(rot);
+    doorGroup.scale.setScalar(scale)
+    doorGroup.position.set(pos.x, pos.y, pos.z);
+
+    //making the door
+    const doorGeometry = new THREE.BoxGeometry(1.5, 2.5, 0.1);
+    const door = new THREE.Mesh(doorGeometry, doorMaterial);
+    door.position.set(0, 1.25, 0);
+    door.castShadow = true;
+    door.receiveShadow = true;
+    doorGroup.add(door);
+
+    //doorframe
+    const sideFrameGeometry = new THREE.BoxGeometry(0.2, 2.7, 0.15);
+    const sideFrameL = new THREE.Mesh(sideFrameGeometry, frameMaterial);
+    sideFrameL.position.set(-0.85, 1.35, 0);
+    sideFrameL.castShadow = true;
+    sideFrameL.receiveShadowShadow = true;
+    doorGroup.add(sideFrameL);
+    
+    const sideFrameR = sideFrameL.clone();
+    sideFrameR.position.set(0.85, 1.35, 0);
+    doorGroup.add(sideFrameR);
+
+
+    const topFrameGeometry = new THREE.BoxGeometry(1.9, 0.2, 0.15);
+    const topFrame = new THREE.Mesh(topFrameGeometry, frameMaterial);
+    topFrame.position.set(0, 2.6, 0);
+    topFrame.castShadow = true;
+    topFrame.receiveShadow = true;
+    doorGroup.add(topFrame)
+
+
+    //doorknob
+    const doorknobGeometry = new THREE.SphereGeometry(0.05); 
+    const doorKnob = new THREE.Mesh(doorknobGeometry, doorknobMaterial);
+    doorKnob.position.set(0.55, 1.2, 0.05);
+    doorKnob.castShadow = true;
+    doorGroup.add(doorKnob);
+
+    return doorGroup;
+}
+
+
+
 export function makeFloor(y, w, d, material){
     const floorGeometry = new THREE.PlaneGeometry(w,d);
     floorGeometry.rotateX( - Math.PI / 2 );

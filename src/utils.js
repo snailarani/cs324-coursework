@@ -126,3 +126,28 @@ export async function loadObject(src, materialsrc, pos, rotation=0, scale=1){
 
     return object;
 }
+
+
+//initialise audio loader
+const audioLoader = new THREE.AudioLoader();
+
+export async function loadAudio(src, listener, options={}) {
+    const {
+        loop = false,
+        volume = 0.5,
+        autoplay=false,
+    } = options;
+
+    const audio = new THREE.Audio(listener);
+    const audioBuffer = await audioLoader.loadAsync(src);
+    audio.setBuffer(audioBuffer);
+    audio.setLoop(loop);
+    audio.setVolume(volume);
+
+    if(autoplay){
+        audio.play();
+    }
+    return audio;
+}
+
+
