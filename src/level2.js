@@ -1,15 +1,16 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import * as Env from './environment.js';
-import { makeMaterial } from './utils.js';
+import { makeMaterial, loadAudio, loadObject } from './utils.js';
 import seedrandom from 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/+esm';
 import PoissonDiskSampling from 'https://cdn.jsdelivr.net/npm/poisson-disk-sampling@2.3.1/+esm';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 
 
-const roomSize = 50;
-const roomHeight = 1;
+const roomSize = 55;
+const treeZone =53
+const roomHeight = 5;
 const wallThickness = 0.2;
 
 export function makeLevel2(){
@@ -20,7 +21,7 @@ export function makeLevel2(){
         0.1,
         1000
     );
-    camera.position.set(2,1.7,0);
+    camera.position.set(-2,1.7,-1.5);
 
     //set up scene
     const scene = new THREE.Scene();
@@ -34,11 +35,11 @@ export function makeLevel2(){
     
 
     //lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15)
     scene.add(ambientLight)
 
     // moonlight
-    const dirLight = new THREE.DirectionalLight(0xA8CCFF, 0.7); //blue tint for moonlight
+    const dirLight = new THREE.DirectionalLight(0xA8CCFF, 0.4); //blue tint for moonlight
     dirLight.position.set(0,10,3);
     dirLight.castShadow = true;
     dirLight.shadow.camera.left = -roomSize;
@@ -56,7 +57,7 @@ export function makeLevel2(){
     const hemisphereLight = new THREE.HemisphereLight(
         0x7799cc,  // Aurora sky color (blue-purple)
         0x334455,  // ground reflection (dark blue)
-        0.7        
+        0.3       
     );
     scene.add(hemisphereLight);
 
@@ -71,7 +72,7 @@ export function makeLevel2(){
     const colorsFloor = [];
 
     for (let i = 0, l = position.count; i < l; i++) {
-        color.setHSL(Math.random() * 0.35 + 0.5, 0.55, Math.random() * 0.55 + 0.15, THREE.SRGBColorSpace);
+        color.setHSL(Math.random() * 0.35 + 0.5, 0.55, Math.random() * 0.5 + 0.1, THREE.SRGBColorSpace);
         colorsFloor.push(color.r, color.g, color.b);
     }
 
@@ -79,8 +80,8 @@ export function makeLevel2(){
 
     const floorMaterial = new THREE.MeshStandardMaterial({ 
         vertexColors: true, 
-        metalness: 0.1,
-        roughness: 0.2,
+        metalness: 0.0,
+        roughness: 0.5,
     });
 
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
@@ -111,7 +112,7 @@ export function makeLevel2(){
 
     //level boundary walls - just for testing
     const wallMaterial = makeMaterial({
-        color: 0x888888,
+        visible:false,
     });
     const leftWall = Env.makeWall(new THREE.Vector3(-roomSize/2, roomHeight/2, 0), wallThickness, roomHeight, roomSize, wallMaterial);
     scene.add(leftWall);
@@ -137,9 +138,9 @@ export function makeLevel2(){
     // trees
     // Create sampler
     const pds = new PoissonDiskSampling({
-        shape: [roomSize-3, roomSize-3],      
+        shape: [treeZone-2, treeZone-2],      
         minDistance: 4,        
-        maxDistance: 15,        
+        maxDistance: 12,        
         tries: 10,              
     },
     seedrandom('level2'),  // for consistent placement
@@ -151,7 +152,7 @@ export function makeLevel2(){
     // Place trees
     let randScale;
     points.forEach(point => {
-        const treePos = new THREE.Vector3(point[0]-roomSize/2, 0, point[1]-roomSize/2);
+        const treePos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
         randScale = Math.random() * 0.9 + 0.5;
         const tree = Env.makeIceTree(treePos, randScale);
         scene.add(tree);
@@ -160,7 +161,7 @@ export function makeLevel2(){
 
     //rocks
     const pdsRocks = new PoissonDiskSampling({
-        shape: [roomSize-3, roomSize-3],      
+        shape: [treeZone-5, treeZone-5],      
         minDistance: 15,        
         maxDistance: 20,        
         tries: 10,              
@@ -173,7 +174,7 @@ export function makeLevel2(){
 
     // Place trees
     rockPoints.forEach(point => {
-        const rockPos = new THREE.Vector3(point[0]-roomSize/2, 0, point[1]-roomSize/2);
+        const rockPos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
         randScale = Math.random() * 1 + 0.2;
         const rock = Env.makeGlowRocks(rockPos, randScale);
         scene.add(rock);
@@ -208,7 +209,7 @@ export function makeLevel2(){
 
 
 
-
+    loadModels(scene, objects);
 
     //game logic
 
@@ -269,11 +270,46 @@ export function makeLevel2(){
 //     //game logic
 
 async function loadSounds(listener) {
-    const music = await loadAudio('./assets/audio/music.mp3', listener, {loop:true, volume:0.4, autoplay:true});
+    const music = await loadAudio('./assets/audio/music.mp3', listener, {loop:true, volume:0.15, autoplay:true});
+    const wind = await loadAudio('./assets/audio/wind.mp3', listener, {loop:true, volume:1.5, autoplay:true});
     const floor = await loadAudio('./assets/audio/floor2.mp3', listener, {});
 }
 
+async function loadModels(scene, objects){
+    const candy = await loadObject('./assets/models/key2/CandyCane.obj', './assets/models/key2/CandyCane.mtl', new THREE.Vector3(0,1,5), -Math.PI/2, 0.5)
+    scene.add(candy)
+    objects.push(candy)
 
+    const snowman = await loadObject('./assets/models/snowman/snowman.obj', './assets/models/snowman/snowman.mtl', new THREE.Vector3(roomSize/2,0,2), -Math.PI/2, 1.3)
+    scene.add(snowman)
+    objects.push(snowman)
+
+    const snowman2 = snowman.clone();
+    snowman2.position.set(roomSize/2, 0, -1)
+    scene.add(snowman2)
+    objects.push(snowman2)
+
+    const snowman3 = snowman.clone();
+    snowman3.position.set(6, 0, -roomSize/2-1)
+    snowman3.rotateY(Math.PI/2)
+    snowman3.scale.setScalar(1.5)
+    scene.add(snowman3)
+    objects.push(snowman3)
+
+    const snowman4 = snowman.clone();
+    snowman4.position.set(0, 0, roomSize/2+1)
+    snowman4.rotateY(-Math.PI/2)
+    snowman4.scale.setScalar(1.1)
+    scene.add(snowman4)
+    objects.push(snowman4)
+
+    const snowman5 = snowman.clone();
+    snowman5.position.set(-roomSize/4, 0, 5)
+    snowman5.rotateY(-Math.PI/6)
+    snowman5.scale.setScalar(0.8)
+    scene.add(snowman5)
+    objects.push(snowman5)
+}
 
 function createIcicle(height = 1, radius = 0.1) {
     const geometry = new THREE.ConeGeometry(radius, height, 6, 1);
@@ -313,7 +349,7 @@ function addIcicles(scene, objects, count = 40) {
         
         // Distribute around the perimeter
         const angle = rng() * Math.PI * 2;
-        const distance = roomSize/2+5 + rng() * 25;
+        const distance = treeZone/2+5 + rng() * 25;
         
         icicle.position.set(
             Math.cos(angle) * distance,

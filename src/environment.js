@@ -345,20 +345,12 @@ export function makeGlowRocks(pos, scale){
     const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
     const rock = new THREE.Mesh(rockGeometry, rockMaterial);
     rock.position.set(0,0,0);
-    rock.castShadow = true;
     rockGroup.add(rock);
 
-    const light = new THREE.PointLight(randCol, scale-0.15, 1, 30); // blueish light
+    const light = new THREE.PointLight(randCol, 0.15, 1.5, 30); // blueish light
     light.position.set(0, scale/2, 0);
     light.castShadow = true;
     rockGroup.add(light);
-
-
-
-    // light.shadow.mapSize.width = 512;  // Higher = better quality but slower
-    // light.shadow.mapSize.height = 512;
-    // light.shadow.bias = -0.001;
-    // light.decay = 2; 
 
     return rockGroup;
 }
