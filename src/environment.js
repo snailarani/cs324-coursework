@@ -37,7 +37,6 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     topFrame.receiveShadow = true;
     doorGroup.add(topFrame)
 
-
     //doorknob
     const doorknobGeometry = new THREE.SphereGeometry(0.05); 
     const doorKnob = new THREE.Mesh(doorknobGeometry, doorknobMaterial);
@@ -49,9 +48,8 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
 }
 
 
-
-export function makeFloor(y, w, d, material){
-    const floorGeometry = new THREE.PlaneGeometry(w,d);
+export function makeFloor(y, size, material){
+    const floorGeometry = new THREE.PlaneGeometry(size, size);
     floorGeometry.rotateX( - Math.PI / 2 );
 
     const floor = new THREE.Mesh( floorGeometry, material );
@@ -231,70 +229,7 @@ export function playerTorch(camera) {
 }
 
 
-export function makeStar(pos, pcol, scol, scale=1, rotz=0){
-    const starGroup = new THREE.Group();
-    starGroup.rotateZ(rotz)
-    starGroup.position.set(pos.x, pos.y, pos.z);
-    starGroup.scale.set(scale, scale, scale);
 
-    // Central cube
-    const baseGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const baseMaterial = makeMaterial({color: pcol});
-    baseMaterial.emissive = pcol;
-    baseMaterial.emissiveIntensity = 0.59;
-    const base = new THREE.Mesh(baseGeometry, baseMaterial);
-    starGroup.add(base);
-
-    // Cone for each face (0.45 height cones)
-    const coneGeometry = new THREE.ConeGeometry(0.5, 0.45, 4);  // Height: 0.45
-    const coneMaterial = makeMaterial({color: scol});
-    coneMaterial.emissive = scol;
-    coneMaterial.emissiveIntensity = 0.6;
-    
-    // Top face (+Y)
-    const topCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    topCone.position.set(0, 0.725, 0);  // 0.5 + 0.45/2 = 0.725
-    starGroup.add(topCone);
-    
-    // Bottom face (-Y)
-    const bottomCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    bottomCone.rotation.x = Math.PI;
-    bottomCone.position.set(0, -0.725, 0);
-    starGroup.add(bottomCone);
-    
-    // Front face (+Z)
-    const frontCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    frontCone.rotation.x = Math.PI / 2;
-    frontCone.position.set(0, 0, 0.725);
-    starGroup.add(frontCone);
-    
-    // Back face (-Z)
-    const backCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    backCone.rotation.x = -Math.PI / 2;
-    backCone.position.set(0, 0, -0.725);
-    starGroup.add(backCone);
-    
-    // Right face (+X)
-    const rightCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    rightCone.rotation.z = -Math.PI / 2;
-    rightCone.position.set(0.725, 0, 0);
-    starGroup.add(rightCone);
-    
-    // Left face (-X)
-    const leftCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    leftCone.rotation.z = Math.PI / 2;
-    leftCone.position.set(-0.725, 0, 0);
-    starGroup.add(leftCone);
-
-    //Light
-    const light = new THREE.PointLight(pcol, 1, 10); // orange color, intensity, distance
-    light.position.y = 0;
-    light.castShadow = true;
-    starGroup.add(light);  
-
-
-    return starGroup;
-}
 
 
 // level 2 objects
@@ -355,3 +290,69 @@ export function makeGlowRocks(pos, scale){
     return rockGroup;
 }
 
+
+
+// export function makeStar(pos, pcol, scol, scale=1, rotz=0){
+//     const starGroup = new THREE.Group();
+//     starGroup.rotateZ(rotz)
+//     starGroup.position.set(pos.x, pos.y, pos.z);
+//     starGroup.scale.set(scale, scale, scale);
+
+//     // Central cube
+//     const baseGeometry = new THREE.BoxGeometry(1, 1, 1);
+//     const baseMaterial = makeMaterial({color: pcol});
+//     baseMaterial.emissive = pcol;
+//     baseMaterial.emissiveIntensity = 0.59;
+//     const base = new THREE.Mesh(baseGeometry, baseMaterial);
+//     starGroup.add(base);
+
+//     // Cone for each face (0.45 height cones)
+//     const coneGeometry = new THREE.ConeGeometry(0.5, 0.45, 4);  // Height: 0.45
+//     const coneMaterial = makeMaterial({color: scol});
+//     coneMaterial.emissive = scol;
+//     coneMaterial.emissiveIntensity = 0.6;
+    
+//     // Top face (+Y)
+//     const topCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     topCone.position.set(0, 0.725, 0);  // 0.5 + 0.45/2 = 0.725
+//     starGroup.add(topCone);
+    
+//     // Bottom face (-Y)
+//     const bottomCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     bottomCone.rotation.x = Math.PI;
+//     bottomCone.position.set(0, -0.725, 0);
+//     starGroup.add(bottomCone);
+    
+//     // Front face (+Z)
+//     const frontCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     frontCone.rotation.x = Math.PI / 2;
+//     frontCone.position.set(0, 0, 0.725);
+//     starGroup.add(frontCone);
+    
+//     // Back face (-Z)
+//     const backCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     backCone.rotation.x = -Math.PI / 2;
+//     backCone.position.set(0, 0, -0.725);
+//     starGroup.add(backCone);
+    
+//     // Right face (+X)
+//     const rightCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     rightCone.rotation.z = -Math.PI / 2;
+//     rightCone.position.set(0.725, 0, 0);
+//     starGroup.add(rightCone);
+    
+//     // Left face (-X)
+//     const leftCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     leftCone.rotation.z = Math.PI / 2;
+//     leftCone.position.set(-0.725, 0, 0);
+//     starGroup.add(leftCone);
+
+//     //Light
+//     const light = new THREE.PointLight(pcol, 1, 10); // orange color, intensity, distance
+//     light.position.y = 0;
+//     light.castShadow = true;
+//     starGroup.add(light);  
+
+
+//     return starGroup;
+// }

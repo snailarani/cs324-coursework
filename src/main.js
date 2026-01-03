@@ -48,3 +48,29 @@ function animate(renderer, scene, camera, sky) {
     }
     loop();
 }
+
+
+function init(){
+    //Initialise Renderer
+    const renderer = new THREE.WebGLRenderer();
+    renderer.shadowMap.enabled = true;
+
+
+    //Initialise camera:
+    const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    
+    //Initialise scene
+    const scene = new THREE.Scene();
+
+    
+
+
+
+
+
+}

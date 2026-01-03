@@ -2,11 +2,92 @@ import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import * as Env from './environment.js';
 import { loadObject, loadAudio, makeMaterial } from './utils.js';
 
-
 const roomSize = 18;
 const roomHeight = 4;
 const wallThickness = 0.2;
 const corridorleft = -3;
+const objects = [];
+
+
+export function loadLevel1(camera, scene){
+    const roomSize = 18;
+    const roomHeight = 4;
+    const objects = [];
+
+
+    //camera, scene
+    camera.position.set(0,1.7,roomSize/2-1);
+    scene.background = new THREE.Color(0x79aaf7);
+
+    //Lighting
+    level1Lighting(scene, camera);
+
+    //Environment
+
+
+
+    //Add controls
+
+
+
+    //Game Logic
+
+
+
+    //Animate
+
+
+
+
+
+}
+
+
+function level1Lighting(scene, camera){
+    //ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.03)
+    scene.add(ambientLight)
+
+    //player torch
+    const torch = new THREE.SpotLight(0xffaa33); 
+    torch.castShadow = true;
+    torch.angle = Math.PI / 7;
+    torch.intensity = 3;
+    torch.decay = 1;
+    torch.penumbra = 0.35;
+    camera.add(torch);
+    torch.position.set(0, -0.15, -0.15);
+}
+
+function level1Env(scene){
+    //floor
+
+    //outer walls (boundaries)
+
+    //roof
+
+    //inner walls
+
+    //center pole
+
+    //crates
+
+    //torches
+
+    //door
+
+    //bed
+
+    //chests
+
+    //barrels
+
+
+    //coins - might have seperate function for collectiblrd
+
+}
+
+
 
 //TODO: fix weird texture stretching on walls with doorways
 //TODO: randomise crate textures 
