@@ -88,13 +88,11 @@ export function makeControls(camera){
     document.addEventListener('keydown', onKeyDown);
 	document.addEventListener('keyup', onKeyUp);
 
-
-    // Movement physics
     return controls
 };
 
 
-export function updateControls(delta, controls, objects, camera){
+export function updateControls(delta, controls, objects, camera, speed, ray_offset){
 
     // Only move if cursor is locked
     if (!controls.isLocked) return;
@@ -112,8 +110,6 @@ export function updateControls(delta, controls, objects, camera){
     // Determine movement length
     if ( moveForward || moveBackward ) velocity.z -= direction.z * speed * delta;
     if ( moveLeft || moveRight ) velocity.x -= direction.x * speed * delta;
-
-
 
     // Handling collisions
 
