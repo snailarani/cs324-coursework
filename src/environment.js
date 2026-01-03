@@ -217,23 +217,10 @@ export function createTorch(x, y, z, rotateY) {
   return torchGroup;
 }
 
-export function playerTorch(camera) {
-    const torch = new THREE.SpotLight(0xffaa33); 
-    torch.castShadow = true;
-
-    camera.add(torch);
-    torch.position.set(0, 1.7, -0.5);
-
-    return torch
-
-}
-
-
-
 
 
 // level 2 objects
-export function makeIceTree(pos, scale){
+export function createTree(pos, scale){
     const treeGroup = new THREE.Group();
     treeGroup.position.set(pos.x, pos.y, pos.z);
     treeGroup.scale.set(scale, scale, scale);
@@ -264,7 +251,7 @@ export function makeIceTree(pos, scale){
     return treeGroup;
 }
 
-export function makeGlowRocks(pos, scale){
+export function createRock(pos, scale){
     const rockGroup = new THREE.Group();
     rockGroup.position.set(pos.x, pos.y, pos.z);
 
@@ -290,7 +277,34 @@ export function makeGlowRocks(pos, scale){
     return rockGroup;
 }
 
+export function createIcicle(height = 1, radius = 0.1) {
+    const icicleGeo = new THREE.ConeGeometry(radius, height, 6, 1);
+    
+    const color = new THREE.Color();
+    const position = icicleGeo.attributes.position;
+    const colorsIcicle = [];
+    
+    for (let i = 0, l = position.count; i < l; i++) {
+        color.setHSL(Math.random() * 0.45 + 0.5, 0.55, Math.random() * 0.35 + 0.1, THREE.SRGBColorSpace);
+        colorsIcicle.push(color.r, color.g, color.b);
+    }
+    
+    icicleGeo.setAttribute('color', new THREE.Float32BufferAttribute(colorsIcicle, 3));
+    
+    const icicleMat = new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        metalness: 0.2,
+        roughness: 0.3,
+        transparent: false,
+        opacity: 0.98,
+        emissive: 0x88CCFF,
+        emissiveIntensity: 0.08,
+    });
 
+    const icicle = new THREE.Mesh(icicleGeo, icicleMat);
+    
+    return icicle
+}
 
 // export function makeStar(pos, pcol, scol, scale=1, rotz=0){
 //     const starGroup = new THREE.Group();
@@ -355,4 +369,15 @@ export function makeGlowRocks(pos, scale){
 
 
 //     return starGroup;
+// }
+
+// export function playerTorch(camera) {
+//     const torch = new THREE.SpotLight(0xffaa33); 
+//     torch.castShadow = true;
+
+//     camera.add(torch);
+//     torch.position.set(0, 1.7, -0.5);
+
+//     return torch
+
 // }

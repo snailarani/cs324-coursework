@@ -5,7 +5,6 @@ import { loadObject, loadAudio, makeMaterial } from './utils.js';
 const roomSize = 18;
 const roomHeight = 4;
 const wallThickness = 0.2;
-const objects = [];
 
 
 export async function loadLevel1(scene, camera){
@@ -14,7 +13,7 @@ export async function loadLevel1(scene, camera){
 
     //camera, scene
     camera.position.set(0,1.7,roomSize/2-1);
-    scene.background = new THREE.Color(0x79aaf7);
+    scene.background = new THREE.Color(0x000000);
 
     //Lighting
     level1Lighting(scene, camera);
@@ -26,6 +25,7 @@ export async function loadLevel1(scene, camera){
     camera.add(listener);
     await loadSounds(listener)
 
+    //external models
     await loadExtModels(scene, objects)
 
     //Game Logic
