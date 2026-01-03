@@ -143,7 +143,7 @@ export function createTorch(x, y, z, rotateY) {
 
   // Torch stick
   const stickGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8);
-  const stickMaterial = new THREE.MeshStandardMaterial({ color: 0x4a2511 });
+  const stickMaterial = makeMaterial({ color: 0x4a2511 });
   const stick = new THREE.Mesh(stickGeometry, stickMaterial);
   
   // Flame
@@ -184,23 +184,84 @@ export function playerTorch(camera) {
 }
 
 
+export function makeStar(pos, pcol, scol, scale=1, rotz=0){
+    const starGroup = new THREE.Group();
+    starGroup.rotateZ(rotz)
+    starGroup.position.set(pos.x, pos.y, pos.z);
+    starGroup.scale.set(scale, scale, scale);
+
+    // Central cube
+    const baseGeometry = new THREE.BoxGeometry(1, 1, 1);
+    const baseMaterial = makeMaterial({color: pcol});
+    baseMaterial.emissive = pcol;
+    baseMaterial.emissiveIntensity = 0.59;
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    starGroup.add(base);
+
+    // Cone for each face (0.45 height cones)
+    const coneGeometry = new THREE.ConeGeometry(0.5, 0.45, 4);  // Height: 0.45
+    const coneMaterial = makeMaterial({color: scol});
+    coneMaterial.emissive = scol;
+    coneMaterial.emissiveIntensity = 0.6;
+    
+    // Top face (+Y)
+    const topCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    topCone.position.set(0, 0.725, 0);  // 0.5 + 0.45/2 = 0.725
+    starGroup.add(topCone);
+    
+    // Bottom face (-Y)
+    const bottomCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    bottomCone.rotation.x = Math.PI;
+    bottomCone.position.set(0, -0.725, 0);
+    starGroup.add(bottomCone);
+    
+    // Front face (+Z)
+    const frontCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    frontCone.rotation.x = Math.PI / 2;
+    frontCone.position.set(0, 0, 0.725);
+    starGroup.add(frontCone);
+    
+    // Back face (-Z)
+    const backCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    backCone.rotation.x = -Math.PI / 2;
+    backCone.position.set(0, 0, -0.725);
+    starGroup.add(backCone);
+    
+    // Right face (+X)
+    const rightCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    rightCone.rotation.z = -Math.PI / 2;
+    rightCone.position.set(0.725, 0, 0);
+    starGroup.add(rightCone);
+    
+    // Left face (-X)
+    const leftCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    leftCone.rotation.z = Math.PI / 2;
+    leftCone.position.set(-0.725, 0, 0);
+    starGroup.add(leftCone);
+
+    //Light
+    const light = new THREE.PointLight(pcol, 1, 10); // orange color, intensity, distance
+    light.position.y = 0;
+    light.castShadow = true;
+    starGroup.add(light);  
+
+
+    return starGroup;
+}
+
+
 // level 2 objects
 export function makeIceTree(pos, scale){
     const treeGroup = new THREE.Group();
     treeGroup.position.set(pos.x, pos.y, pos.z);
     treeGroup.scale.set(scale, scale, scale);
 
-    // const trunkmaterial = makeMaterial({
-    //     color: 0x452f29,
-    // });
-
-    // const treeMaterial = makeMaterial({
-    //     color:new THREE.Color(1, 0, 0),
-    //     roughness: 0,
-    //     metalness: 0,
-    // });
     const trunkmaterial = makeMaterial({color: 0x452f29});
-    const treeMaterial = makeMaterial({color: 0x5aa1f2});
+    const treeMaterial = makeMaterial({
+        color: 0x5aa1f2,
+        metalness: 0.1,
+        roughness: 0.8,
+    });
     treeMaterial.envMapIntensity = 2;
     treeMaterial.needsUpdate = true;
 
@@ -211,7 +272,7 @@ export function makeIceTree(pos, scale){
     trunk.receiveShadow = true;
     treeGroup.add(trunk);
 
-    const treeGeometry = new THREE.ConeGeometry(1.5, 5, 32);
+    const treeGeometry = new THREE.ConeGeometry(1.5, 5, 128);
     const tree = new THREE.Mesh(treeGeometry, treeMaterial);
     tree.position.set(0, 3.5, 0);
     tree.castShadow = true;
@@ -227,21 +288,22 @@ export function makeGlowRocks(pos, scale){
 
     const randCol = randomRGB();
 
-    // const rockMaterial = makeMaterial({color: randCol});
-    // rockMaterial.emissive = randCol;
-    // rockMaterial.emissiveIntensity = 1;
-    // rockMaterial.needsUpdate = true;
+    const rockMaterial = makeMaterial({color: randCol});
+    rockMaterial.emissive = randCol;
+    rockMaterial.emissiveIntensity = 0.3;
+    rockMaterial.needsUpdate = true;
+    
 
-    // const randGeometry = Math.floor(Math.random()*3+1);
-    // const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
-    // const rock = new THREE.Mesh(rockGeometry, rockMaterial);
-    // rock.position.set(0,0,0);
-    // rock.castShadow = true;
-    // rock.receiveShadow = true;
-    // rockGroup.add(rock);
+    const randGeometry = Math.floor(Math.random()*3+1);
+    const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
+    const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+    rock.position.set(0,0,0);
+    rock.castShadow = true;
+    rock.receiveShadow = true;
+    rockGroup.add(rock);
 
-    const light = new THREE.PointLight(randCol, 0.3, 10, 2); // blueish light
-    light.position.set(0, scale-0.1, 0);
+    const light = new THREE.PointLight(randCol, scale-0.1, 1, 20); // blueish light
+    light.position.set(0, scale/2, 0);
     light.castShadow = true;
     rockGroup.add(light);
 

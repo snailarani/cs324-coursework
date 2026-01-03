@@ -8,135 +8,98 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 
 
-const roomSize = 35;
+const roomSize = 50;
 const roomHeight = 1;
 const wallThickness = 0.2;
 
-
-export function makeLevel2(camera, renderer){
+export function makeLevel2(){
     //set up camera
-
-
+    const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.set(0,1.7,2);
 
     //set up scene
-
-
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
 
 
     //lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+    scene.add(ambientLight)
 
+    // moonlight
+    const dirLight = new THREE.DirectionalLight(0xA8CCFF, 0.3); //blue tint for moonlight
+    dirLight.position.set(0,5,3);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
 
+    // hemisphere light for aurora effect
+    const hemisphereLight = new THREE.HemisphereLight(
+        0x7799cc,  // Aurora sky color (blue-purple)
+        0x334455,  // ground reflection (dark blue)
+        0.35        
+    );
+    scene.add(hemisphereLight);
 
+    const objects = [];
 
     //floor
+    const color = new THREE.Color();
+    let floorGeometry = new THREE.PlaneGeometry(100, 100, 20, 30);
+    floorGeometry.rotateX(-Math.PI / 2);
 
+    const position = floorGeometry.attributes.position;  // Declare position here
+    const colorsFloor = [];
 
+    for (let i = 0, l = position.count; i < l; i++) {
+        color.setHSL(Math.random() * 0.35 + 0.5, 0.55, Math.random() * 0.55 + 0.1, THREE.SRGBColorSpace);
+        colorsFloor.push(color.r, color.g, color.b);
+    }
+
+    floorGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsFloor, 3));
+
+    const floorMaterial = new THREE.MeshStandardMaterial({ 
+        vertexColors: true, 
+        metalness: 0.1,
+        roughness: 0,
+        emissive: 0x4E7DC2,
+        emissiveIntensity: 0.05,
+    });
+
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
+    // scene.add(new THREE.GridHelper(roomSize, roomSize)); // grid on the ground
 
 
     //sky
-
-
-
-
-    //asset loading 
-
-
-
-
-
-
-
-    //other objects
-
-
-
-
-
-
-    //animation
-
-
-
-
-
-
-
-    //game logic
-
-
-
-
-
-
-    const scene = new THREE.Scene();
-    // scene.fog = new THREE.Fog( 0x554e59, 12, 14 );
-    const objects = [];
-    
-    scene.background = new THREE.Color(0x000000);
-
     const skyTex = new THREE.TextureLoader().load('assets/textures/au.jpg');
     skyTex.colorSpace = THREE.SRGBColorSpace;
     const skyGeo = new THREE.SphereGeometry(100, 32, 32);
     const skyMat = new THREE.MeshBasicMaterial({
         map: skyTex,
-        side: THREE.BackSide,   // IMPORTANT
+        side: THREE.BackSide,   
         depthWrite: false,       // sky never occludes anything
-        // color: 0x888888,
+        color: 0x691DAD,    //purple tint
     });
 
     const sky = new THREE.Mesh(skyGeo, skyMat);
     sky.material.toneMapped = false;
     scene.add(sky);
 
-    const loader = new OBJLoader();
-    // const object = loader.loadAsync( './assets/models/snowman.obj' );
-    // scene.add( object );
 
-    loader.load(
-        // resource URL
-        './assets/models/snowman.obj',
-        // called when resource is loaded
-        function ( object ) {
-            const textureLoader = new THREE.TextureLoader();
-            const texture = textureLoader.load('./assets/textures/snowmancol.png');
-            object.traverse((child) => {
-                if (child.isMesh) {
-                    // Apply material with texture
-                    child.material = new THREE.MeshStandardMaterial({
-                        map: texture,           // Color/diffuse texture
-                        roughness: 0.8,
-                        metalness: 0.2,
-                    });
-                    
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
-            });
-            
-            scene.add( object );
-            objects.push( object );
-
-    });
-
-    //floor
-    const floorMaterial = makeMaterial({
-        roughnessSrc: 'assets/textures/snowrough.jpg',
-        normalSrc: 'assets/textures/snownorm.jpg',
-        color: 0xffffff,
-        roughness: 0.9,
-        metalness: 0,
-        repeat: [50,50],
-    })
-
-    const floor = Env.makeFloor(0, 100, 100, floorMaterial);
-    scene.add(floor);
-    objects.push(floor);
+    //walls/boundaries
 
     //level boundary walls - just for testing
     const wallMaterial = makeMaterial({
         color: 0x888888,
     });
-
     const leftWall = Env.makeWall(new THREE.Vector3(-roomSize/2, roomHeight/2, 0), wallThickness, roomHeight, roomSize, wallMaterial);
     scene.add(leftWall);
     objects.push(leftWall);
@@ -155,13 +118,16 @@ export function makeLevel2(camera, renderer){
     scene.add(backWall);
     objects.push(backWall);
 
+    addIcicles(scene, objects, 500);
+
+
     // trees
     // Create sampler
     const pds = new PoissonDiskSampling({
-        shape: [35, 35],      // your map size
-        minDistance: 4,         // minimum spacing
-        maxDistance: 15,         // maximum spacing (optional)
-        tries: 10,              // attempts per point 
+        shape: [roomSize-3, roomSize-3],      
+        minDistance: 4,        
+        maxDistance: 15,        
+        tries: 10,              
     },
     seedrandom('level2-final'),  // for consistent placement
     );
@@ -173,145 +139,248 @@ export function makeLevel2(camera, renderer){
     let randScale;
     points.forEach(point => {
         const treePos = new THREE.Vector3(point[0]-roomSize/2, 0, point[1]-roomSize/2);
-        randScale = 0.8//Math.random() * 1 + 0.5;
+        randScale = Math.random() * 0.9 + 0.5;
         const tree = Env.makeIceTree(treePos, randScale);
         scene.add(tree);
         objects.push(tree);
     });
 
-
-    //tree outside of boundary:
-        // trees
-    // Create sampler
-    const out = 15;
-    const pdsOut = new PoissonDiskSampling({
-        shape: [35, out],      // your map size
-        minDistance: 3,         // minimum spacing
-        maxDistance: 15,         // maximum spacing (optional)
-        tries: 10,              // attempts per point 
+    //rocks
+        const pdsRocks = new PoissonDiskSampling({
+        shape: [roomSize-3, roomSize-3],      
+        minDistance: 15,        
+        maxDistance: 20,        
+        tries: 10,              
     },
+    seedrandom('level2-final'),  // for consistent placement
     );
 
     // Generate points
-    points = pdsOut.fill();
+    let rockPoints = pdsRocks.fill();
 
     // Place trees
-    points.forEach(point => {
-        const treePos = new THREE.Vector3(point[0]-(roomSize/2), 0, point[1]-(roomSize/2+out+2));
-        const randScale = Math.random() * 1.3 + 0.5;
-        const tree = Env.makeIceTree(treePos, randScale);
-        scene.add(tree);
-        objects.push(tree);
-    });
-
-    points.forEach(point => {
-        const treePos = new THREE.Vector3(point[0]-(roomSize/2), 0, point[1]+(roomSize/2+2));
-        const randScale = Math.random() * 1.3 + 0.5;
-        const tree = Env.makeIceTree(treePos, randScale);
-        scene.add(tree);
-        objects.push(tree);
-    });
-
-    const outz = 65
-    const pdsOut2 = new PoissonDiskSampling({
-        shape: [out, outz],      // your map size
-        minDistance: 3.5,         // minimum spacing
-        maxDistance: 15,         // maximum spacing (optional)
-        tries: 10,              // attempts per point 
-    },
-    );
-
-    points = pdsOut2.fill();
-
-    points.forEach(point => {
-        const treePos = new THREE.Vector3(point[0]+(roomSize/2+2), 0, point[1]-(outz/2));
-        const randScale = Math.random() * 1.3 + 0.5;
-        const tree = Env.makeIceTree(treePos, randScale);
-        scene.add(tree);
-        objects.push(tree);
-    });
-
-    points.forEach(point => {
-        const treePos = new THREE.Vector3(point[0]-(roomSize/2+out+2), 0, point[1]-(outz/2));
-        const randScale = Math.random() * 1.3 + 0.5;
-        const tree = Env.makeIceTree(treePos, randScale);
-        scene.add(tree);
-        objects.push(tree);
-    });
-
-
-    const pds1 = new PoissonDiskSampling({
-        shape: [35, 35],      // your map size
-        minDistance: 8,         // minimum spacing
-        maxDistance: 15,         // maximum spacing (optional)
-        tries: 10         // attempts per point
-    });
-
-    const rockPoint = pds1.fill();
-    rockPoint.forEach(point => {
+    rockPoints.forEach(point => {
         const rockPos = new THREE.Vector3(point[0]-roomSize/2, 0, point[1]-roomSize/2);
-        const rock = Env.makeGlowRocks(rockPos, 0.5);
+        randScale = Math.random() * 1 + 0.2;
+        const rock = Env.makeGlowRocks(rockPos, randScale);
         scene.add(rock);
         objects.push(rock);
     });
 
-    // scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
-    // scene.add(new THREE.GridHelper(20, 20)); // grid on the ground
 
 
-    //ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
-    scene.add(ambientLight)
 
-    // moon light
-    const dirLight = new THREE.DirectionalLight(0x5596e0, 0.25);
-    dirLight.position.set(0,25,25);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.set(2048, 2048);
-    const d = 50;
-    dirLight.shadow.camera.left   = -d;
-    dirLight.shadow.camera.right  =  d;
-    dirLight.shadow.camera.top    =  d;
-    dirLight.shadow.camera.bottom = -d;
-    scene.add(dirLight);
-
-    // hemisphere light for aurora effect
-    const hemisphereLight = new THREE.HemisphereLight(
-        0x7799cc,  // Aurora sky color (blue-purple)
-        0x334455,  // Snowy ground reflection (dark blue)
-        0.35        // Moderate intensity
-    );
-    scene.add(hemisphereLight);
+    //animation
 
 
 
 
-    return {scene, objects, sky};
+
+
+
+    //game logic
+
+    return{scene, objects, camera}
+
 }
 
 
 
-//adjusted from https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_envmaps_exr.html
-function loadEXRTexture(scene, srcexr, scrimg, renderer){
-    const pmremGenerator = new THREE.PMREMGenerator( renderer );
+// export function makeLevel2(camera, renderer){
+//     //set up camera
+
+
+
+//     //set up scene
+
+
+
+
+//     //lights
+
+
+
+
+//     //floor
+
+
+
+
+//     //sky
+
+
+
+
+//     //asset loading 
+
+
+
+
+
+
+
+//     //other objects
+
+
+
+
+
+
+//     //animation
+
+
+
+
+
+
+
+//     //game logic
+
+
+
+function createIcicle(height = 1, radius = 0.1) {
+    const geometry = new THREE.ConeGeometry(radius, height, 6, 1);
     
-    // apply exr environment map to scene
-    new EXRLoader().load( srcexr, function ( texture ) {
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        
-        const envRenderTarget = pmremGenerator.fromEquirectangular( texture );
-        scene.environment = envRenderTarget.texture;
-
-        texture.dispose();
-        pmremGenerator.dispose();
-    } );
-
-    // apply background image
-    new THREE.TextureLoader().load( scrimg, function ( texture ) {
-
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        texture.colorSpace = THREE.SRGBColorSpace;
-
-        scene.background = texture;
-    } );
+    const color = new THREE.Color();
+    const position = geometry.attributes.position;
+    const colorsIcicle = [];
+    
+    for (let i = 0, l = position.count; i < l; i++) {
+        color.setHSL(Math.random() * 0.45 + 0.5, 0.55, Math.random() * 0.35 + 0.1, THREE.SRGBColorSpace);
+        colorsIcicle.push(color.r, color.g, color.b);
+    }
+    
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsIcicle, 3));
+    
+    const material = new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        metalness: 0.2,
+        roughness: 0.3,
+        transparent: false,
+        opacity: 0.98,
+        emissive: 0x88CCFF,
+        emissiveIntensity: 0.08,
+    });
+    
+    return new THREE.Mesh(geometry, material);
 }
+
+
+function addIcicles(scene, objects, count = 40) {
+    const rng = seedrandom('icicles');
+    
+    for (let i = 0; i < count; i++) {
+        const height = 4 + rng() * 15;
+        const radius = 0.5 + rng() * 2.5;
+        const icicle = createIcicle(height, radius);
+        
+        // Distribute around the perimeter
+        const angle = rng() * Math.PI * 2;
+        const distance = roomSize/2+5 + rng() * 25;
+        
+        icicle.position.set(
+            Math.cos(angle) * distance,
+            height / 2,
+            Math.sin(angle) * distance
+        );
+        
+        //random tilt
+        icicle.rotation.z = (rng() - 0.5) * 0.2;
+        icicle.rotation.x = (rng() - 0.5) * 0.2;
+        
+        scene.add(icicle);
+        objects.push(icicle);
+    }
+}
+
+
+
+
+
+
+
+//     // trees
+//     // Create sampler
+//     const pds = new PoissonDiskSampling({
+//         shape: [35, 35],      // your map size
+//         minDistance: 4,         // minimum spacing
+//         maxDistance: 15,         // maximum spacing (optional)
+//         tries: 10,              // attempts per point 
+//     },
+//     seedrandom('level2-final'),  // for consistent placement
+//     );
+
+//     // Generate points
+//     let points = pds.fill();
+
+//     // Place trees
+//     let randScale;
+//     points.forEach(point => {
+//         const treePos = new THREE.Vector3(point[0]-roomSize/2, 0, point[1]-roomSize/2);
+//         randScale = 0.8//Math.random() * 1 + 0.5;
+//         const tree = Env.makeIceTree(treePos, randScale);
+//         scene.add(tree);
+//         objects.push(tree);
+//     });
+
+
+//     //tree outside of boundary:
+//         // trees
+//     // Create sampler
+//     const out = 15;
+//     const pdsOut = new PoissonDiskSampling({
+//         shape: [35, out],      // your map size
+//         minDistance: 3,         // minimum spacing
+//         maxDistance: 15,         // maximum spacing (optional)
+//         tries: 10,              // attempts per point 
+//     },
+//     );
+
+//     // Generate points
+//     points = pdsOut.fill();
+
+//     // Place trees
+//     points.forEach(point => {
+//         const treePos = new THREE.Vector3(point[0]-(roomSize/2), 0, point[1]-(roomSize/2+out+2));
+//         const randScale = Math.random() * 1.3 + 0.5;
+//         const tree = Env.makeIceTree(treePos, randScale);
+//         scene.add(tree);
+//         objects.push(tree);
+//     });
+
+//     points.forEach(point => {
+//         const treePos = new THREE.Vector3(point[0]-(roomSize/2), 0, point[1]+(roomSize/2+2));
+//         const randScale = Math.random() * 1.3 + 0.5;
+//         const tree = Env.makeIceTree(treePos, randScale);
+//         scene.add(tree);
+//         objects.push(tree);
+//     });
+
+//     const outz = 65
+//     const pdsOut2 = new PoissonDiskSampling({
+//         shape: [out, outz],      // your map size
+//         minDistance: 3.5,         // minimum spacing
+//         maxDistance: 15,         // maximum spacing (optional)
+//         tries: 10,              // attempts per point 
+//     },
+//     );
+
+//     points = pdsOut2.fill();
+
+//     points.forEach(point => {
+//         const treePos = new THREE.Vector3(point[0]+(roomSize/2+2), 0, point[1]-(outz/2));
+//         const randScale = Math.random() * 1.3 + 0.5;
+//         const tree = Env.makeIceTree(treePos, randScale);
+//         scene.add(tree);
+//         objects.push(tree);
+//     });
+
+//     points.forEach(point => {
+//         const treePos = new THREE.Vector3(point[0]-(roomSize/2+out+2), 0, point[1]-(outz/2));
+//         const randScale = Math.random() * 1.3 + 0.5;
+//         const tree = Env.makeIceTree(treePos, randScale);
+//         scene.add(tree);
+//         objects.push(tree);
+//     });
+
+

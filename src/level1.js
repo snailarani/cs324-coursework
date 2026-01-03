@@ -12,6 +12,7 @@ const corridorleft = -3;
 //TODO: randomise crate textures 
 //TODO: add particles to flames
 //TODO: refactor code
+//TODO: Add sound for walking
 
 export function makeLevel1(){
     //set up camera
@@ -294,8 +295,8 @@ export function makeLevel1(){
     // });
 
     
-    scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
-    scene.add(new THREE.GridHelper(roomSize, roomSize)); // grid on the ground
+    // scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
+    // scene.add(new THREE.GridHelper(roomSize, roomSize)); // grid on the ground
     return {scene, objects, camera};
 
 }
