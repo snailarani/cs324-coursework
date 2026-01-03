@@ -26,6 +26,12 @@ export function makeLevel2(){
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
+    //set up sound listener
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    loadSounds(listener);
+    
 
     //lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
@@ -261,6 +267,11 @@ export function makeLevel2(){
 
 
 //     //game logic
+
+async function loadSounds(listener) {
+    const music = await loadAudio('./assets/audio/music.mp3', listener, {loop:true, volume:0.4, autoplay:true});
+    const floor = await loadAudio('./assets/audio/floor2.mp3', listener, {});
+}
 
 
 
