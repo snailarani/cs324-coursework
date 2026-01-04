@@ -3,6 +3,7 @@ import seedrandom from 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/+esm';
 import PoissonDiskSampling from 'https://cdn.jsdelivr.net/npm/poisson-disk-sampling@2.3.1/+esm';
 import * as Env from './environment.js';
 import { makeMaterial, loadAudio, loadObject } from './utils.js';
+import { initAudio, loadBgAudio, loadFloorAudio, loadCoinAudio, loadDoorAudio } from './sounds.js';
 
 const roomSize = 55
 const treeZone = 53
@@ -12,7 +13,7 @@ const wallThickness = 0.2
 export async function loadLevel2(scene, camera){
 
     const objects = []
-    const listener = new THREE.AudioListener();
+    // const listener = new THREE.AudioListener();
 
     //camera, scene
     camera.position.set(-2,1.7,-1.5);
@@ -24,10 +25,13 @@ export async function loadLevel2(scene, camera){
     //Environment
     level2Env(scene, objects)
 
+    //door
     const door = loadDoor(scene, objects)
 
     //sounds
-    loadSounds(listener)
+    initAudio(camera)
+    // camera.add(listener);
+    await loadSounds()
 
     //external models
     loadExtModels(scene, objects)
@@ -323,9 +327,11 @@ function addIcicles(count) {
 }
 
 
-async function loadSounds(listener){
-    const music = await loadAudio('./assets/audio/music.mp3', listener, {loop:true, volume:0.15, autoplay:true});
-    const wind = await loadAudio('./assets/audio/wind.mp3', listener, {loop:true, volume:1.5, autoplay:true});
-    const floor = await loadAudio('./assets/audio/floor2.mp3', listener, {});
+async function loadSounds(){
+    const music = await loadBgAudio('./assets/audio/music.mp3', {loop:true, volume:0.15});
+    const wind = await loadBgAudio('./assets/audio/wind.mp3', {loop:true, volume:1.3});
+    const floor = await loadFloorAudio('./assets/audio/floor2.mp3', {loop:true, volume:1.3});
+    const key = await loadCoinAudio('./assets/audio/keys2.mp3', {volume:1.5});
+    const door = await loadDoorAudio('./assets/audio/door2.wav', {volume:1.5});
 }
 

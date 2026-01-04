@@ -1,9 +1,10 @@
 import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js";
 import { PointerLockControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/PointerLockControls.js";
 import { collectKey } from "./game.js"
+import { playBgAudio, pauseBgAudio, playWalkAudio, stopWalkAudio, playCoinAudio } from "./sounds.js";
 
 //TODO: add bobbing up and down when walking (don't shift the camera up/down, you'll drift, use sine wave from set base height (camera height))
-//TODO: Change raycast position for level 2 (make it chest height not feet height)
+//TODO: fix animation stuff (moving pointer lock, improve collision stuff)
 
 let moveForward = false;
 let moveBackward = false;
@@ -25,6 +26,9 @@ export function makeControls(camera, scene, currentLevel){
     //Making pointer controls
     const controls = new PointerLockControls( camera, document.body );
 
+    //store locked mouse position
+    let lockedRotation = { x: 0, y: 0 };
+
     //locks cursor on click
     document.addEventListener('click', function () {
         controls.lock();
@@ -34,16 +38,23 @@ export function makeControls(camera, scene, currentLevel){
         instructions.style.display = 'none';
         blocker.style.display = 'none';
         overlay.style.display = 'flex';
+        playBgAudio();
+
     } );
 
     controls.addEventListener( 'unlock', function () {
         overlay.style.display = 'none';
         blocker.style.display = 'flex';  
-        instructions.style.display = 'flex';  
+        instructions.style.display = 'flex'; 
+        pauseBgAudio();
+
     } );
 
     //Movement
     const onKeyDown = function (event){
+
+        if (!controls.isLocked) return;
+
         switch(event.code){
             //W - Forward
             case 'KeyW':
@@ -62,6 +73,7 @@ export function makeControls(camera, scene, currentLevel){
                 moveRight = true;
                 break;
         }
+        playWalkAudio()
     }
 
     const onKeyUp = function (event){
@@ -83,6 +95,7 @@ export function makeControls(camera, scene, currentLevel){
                 moveRight = false;
                 break;
         }
+        stopWalkAudio()
     }
 
     document.addEventListener('keydown', onKeyDown);
@@ -91,6 +104,7 @@ export function makeControls(camera, scene, currentLevel){
     //add controls to pick up coins
     document.addEventListener('click', function(){
         pickUpCoin(controls, camera, scene, currentLevel)
+        //play coin audio
     })
 
     return controls
@@ -104,7 +118,6 @@ function pickUpCoin(controls, camera, scene, currentLevel){
     if (!controls.isLocked){
         return
     }
-
     let keyName;
 
     if (currentLevel==1){
@@ -129,6 +142,7 @@ function pickUpCoin(controls, camera, scene, currentLevel){
         const object = intersection.object
         if (object.name==keyName){
             scene.remove(object.parent)
+            playCoinAudio()|
             collectKey()
         }
     }
@@ -138,12 +152,14 @@ function pickUpCoin(controls, camera, scene, currentLevel){
 
 export function updateControls(delta, controls, objects, camera, currentLevel){
 
-    const speed = (currentLevel==1) ? 23 : 23;
+    const speed = (currentLevel==1) ? 18 : 15;
     const ray_offset = (currentLevel==1) ? 1 : 0;
 
-
-    //Only move if cursor is locked
-    if (!controls.isLocked) return;
+    if (!controls.isLocked) {
+        // Reset velocity when not locked
+        velocity.set(0, 0, 0);
+        return;
+    }
 
     const playerPos = controls.object.position
 

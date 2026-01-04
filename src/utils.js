@@ -137,7 +137,6 @@ export async function loadAudio(src, listener, options={}) {
     const {
         loop = false,
         volume = 0.5,
-        autoplay=false,
     } = options;
 
     const audio = new THREE.Audio(listener);
@@ -146,9 +145,6 @@ export async function loadAudio(src, listener, options={}) {
     audio.setLoop(loop);
     audio.setVolume(volume);
 
-    if(autoplay){
-        audio.play();
-    }
     return audio;
 }
 

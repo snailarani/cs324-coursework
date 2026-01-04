@@ -34,54 +34,6 @@ export async function loadLevel1(scene, camera){
 }
 
 
-//TODO-remove
-function addGridLabels(scene) {
-    const labelStep = 0.5; // Label every 10 units
-    const labelRange = (roomSize)/2; // From -50 to +50
-    
-    for (let i = -labelRange; i <= labelRange; i += labelStep) {
-        if (i === 0) continue; // Skip center
-        
-        // Create a NEW canvas for each number
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = 128;
-        canvas.height = 128;
-        
-        // Draw the number
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = 'white';
-        context.font = 'Bold 20px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(i.toString(), 64, 64);
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        
-        // X-axis labels
-        const spriteMaterialX = new THREE.SpriteMaterial({ 
-            map: texture.clone(),
-            depthTest: false,
-            depthWrite: false
-        });
-        const spriteX = new THREE.Sprite(spriteMaterialX);
-        spriteX.position.set(i, 0.1, 0);
-        spriteX.scale.set(2, 2, 1);
-        scene.add(spriteX);
-        
-        // Z-axis labels
-        const spriteMaterialZ = new THREE.SpriteMaterial({ 
-            map: texture.clone(),
-            depthTest: false,
-            depthWrite: false
-        });
-        const spriteZ = new THREE.Sprite(spriteMaterialZ);
-        spriteZ.position.set(0, 0.1, i);
-        spriteZ.scale.set(2, 2, 1);
-        scene.add(spriteZ);
-    }
-}
-
 
 function level1Lighting(scene, camera){
     //ambient light TODO: set to 0.03
@@ -362,8 +314,6 @@ async function loadSounds(listener) {
 }
 
 
-//TODO: fix weird texture stretching on walls with doorways
-//TODO: randomise crate textures 
 //TODO: add particles to flames
 //TODO: Add sound for walking
 

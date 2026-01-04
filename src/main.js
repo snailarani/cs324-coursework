@@ -7,7 +7,8 @@ import { gameInit } from "./game.js";
 
 const clock = new THREE.Clock()
 
-var currentLevel=1
+var currentLevel=2
+
 function animate(renderer, scene, camera, objects, controls, currentLevel, sky) {
     function loop() {
         requestAnimationFrame(loop);

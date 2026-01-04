@@ -1,10 +1,11 @@
+import { playDoorAudio } from "./sounds.js";
 let numKeys;
 let counter;
 let door;
 
 export function gameInit(n, d, currentLevel){
     //initalise counters
-    numKeys = (currentLevel==1) ? 12 : 25
+    numKeys = (currentLevel==1) ? 12 : 3
     counter = 0
 
     //define door
@@ -23,7 +24,6 @@ export function gameInit(n, d, currentLevel){
 
 export function collectKey(){
     counter++
-    console.log("Keys:", counter + "/" + numKeys);
 
     //update overlay counter
     document.getElementById('key-counter').textContent = `${counter}/${numKeys}`
@@ -34,7 +34,6 @@ export function collectKey(){
         document.getElementById('key-counter').style.fontSize = `20px`
         document.getElementById('key-img').style.display = `none`
         document.getElementById('key-counter').textContent = `You collected all keys! Find the door and escape!`;
-        console.log("Level Complete")
         levelComplete(door)
     }
 }
@@ -48,6 +47,7 @@ export function levelComplete(doorGroup){
     door.material.emissive.set(0xffffff)
     door.material.emissiveIntensity = 0.8
     knob.visible = false
+    playDoorAudio()
 }
 
 
