@@ -28,16 +28,17 @@ export function makeControls(camera, scene){
 
     //locks cursor on click
     document.addEventListener('click', function () {
-        overlay.style.display = 'flex';
         controls.lock();
     });
 
     controls.addEventListener( 'lock', function () {
         instructions.style.display = 'none';
         blocker.style.display = 'none';
+        overlay.style.display = 'flex';
     } );
 
     controls.addEventListener( 'unlock', function () {
+        overlay.style.display = 'none';
         blocker.style.display = 'flex';  
         instructions.style.display = 'flex';  
     } );

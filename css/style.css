@@ -69,17 +69,20 @@
     pointer-events: none;
 }
 
-#key-counter {
-    width: 300px;
+#top-box {
+    width: 200px;
     height: 80px;
     display: flex;
     background-color: rgba(135, 97, 169, 0.784);
     justify-content: space-evenly;
     align-items: center;
     border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    border: 2px solid white;
 }
 
-#key-counter p{
+
+#key-counter {
     font-size: 50px;
     text-align: left;
     color: white;
