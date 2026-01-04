@@ -1,6 +1,7 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import * as Env from './environment.js';
-import { loadObject, loadAudio, makeMaterial } from './utils.js';
+import { loadObject, makeMaterial } from './utils.js';
+import { initAudio, loadBgAudio, loadFloorAudio, loadKeyAudio, loadDoorAudio } from './sounds.js';
 
 const roomSize = 18;
 const roomHeight = 4;
@@ -9,7 +10,6 @@ const wallThickness = 0.2;
 
 export async function loadLevel1(scene, camera){
     const objects = [];
-    const listener = new THREE.AudioListener();
 
     //camera, scene
     camera.position.set(0,1.7,roomSize/2-1);
@@ -24,8 +24,8 @@ export async function loadLevel1(scene, camera){
     const door = loadDoor(scene, objects)
 
     //sounds
-    camera.add(listener);
-    await loadSounds(listener)
+    initAudio(camera)
+    await loadSounds()
 
     //external models
     await loadExtModels(scene, objects)
@@ -305,17 +305,17 @@ async function loadExtModels(scene, objects){
     });
 }
 
-async function loadSounds(listener) {
-    const storm = await loadAudio('./assets/audio/storm.mp3', listener, {loop:true, volume:0.4, autoplay:true});
-    const waves = await loadAudio('./assets/audio/waves.mp3', listener, {loop:true, volume:0.3, autoplay:true});
-    const floor = await loadAudio('./assets/audio/floor1.mp3', listener, {});
-    const door = await loadAudio('./assets/audio/door1.wav', listener, {});
-    const keys = await loadAudio('./assets/audio/keys1.mp3', listener, {});
+async function loadSounds() {
+    const storm = await loadBgAudio('./assets/audio/storm.mp3', {loop:true, volume:0.4});
+    const waves = await await loadBgAudio('./assets/audio/music.mp3', {loop:true, volume:0.3});
+    const floor = await loadFloorAudio('./assets/audio/floor1.mp3', {loop:true, volume:1.3});
+    const door = await loadKeyAudio('./assets/audio/keys1.mp3', {volume:1.5});
+    const keys = await loadDoorAudio('./assets/audio/door1.wav', {volume:1.3});
 }
 
 
 //TODO: add particles to flames
-//TODO: Add sound for walking
+
 
 
 

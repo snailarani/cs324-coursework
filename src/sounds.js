@@ -27,7 +27,7 @@ export async function loadFloorAudio(src, options){
     return walkAudio
 }
 
-export async function loadCoinAudio(src, options){
+export async function loadKeyAudio(src, options){
     coinAudio = await loadAudio(src, listener, options)
     return coinAudio
 }
