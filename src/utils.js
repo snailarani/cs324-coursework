@@ -14,7 +14,7 @@ const textureCache = new Map();
 
 export function makeMaterial(options = {}){
     const{
-        color = null,
+        color = 0xffffff,
         textureSrc = null,
         roughnessSrc = null,
         normalSrc = null,
@@ -28,7 +28,7 @@ export function makeMaterial(options = {}){
     const textureParams = {
         roughness: roughness,
         metalness: metalness,
-        color: color || 0xffffff, //default white if no color
+        color: color,
         visible: visible,
     }
 

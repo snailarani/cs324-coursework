@@ -1,13 +1,10 @@
-
 let numKeys;
 let counter;
 let door;
 
 export function gameInit(n, d, currentLevel){
     //initalise counters
-    numKeys = (currentLevel==1) ? 10 : 25
-    //TODO:remove
-    // numKeys=1
+    numKeys = (currentLevel==1) ? 12 : 25
     counter = 0
 
     //define door

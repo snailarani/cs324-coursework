@@ -78,7 +78,7 @@ export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHe
 
     const leftWallW = (width - doorWidth) / 2;
     const rightWallW = leftWallW;
-    const topWallH = doorHeight - doorHeight;
+    const topWallH = height - doorHeight;
 
     const leftWall = makeWall(new THREE.Vector3(-(width/2 - leftWallW/2), -(height-doorHeight)/2, 0), leftWallW, doorHeight, depth, material);
     const rightWall = leftWall.clone()
@@ -103,6 +103,8 @@ const crateMat1 = makeMaterial({
     normalSrc: 'assets/textures/crate1norm.jpg',
     roughness: 0.7,
     repeat: [1,1],
+    //todo:remove
+    // color: 0x689b21,
 })
 
 const crateMat2 = makeMaterial({
@@ -111,12 +113,14 @@ const crateMat2 = makeMaterial({
     normalSrc: 'assets/textures/crate2norm.jpg',
     roughness: 0.7,
     repeat: [1,1],
+        //todo:remove
+    // color: 0x689b21,
 })
 
 const crateMats = [crateMat1, crateMat2]
 
 
-export function makeCrate(pos, width, height, depth, material, options = {}){
+export function makeCrate(pos, width, height, depth, options = {}){
     const{
         lidOverhang = 0.04,
         lidThickness = 0.05,
@@ -153,43 +157,39 @@ export function makeCrate(pos, width, height, depth, material, options = {}){
     return crateGroup;
 }
 
-export function makeBigCrate(pos, material){
-    return makeCrate(pos, 1.5, 1.2, 2.5, material, {
+export function makeBigCrate(pos){
+    return makeCrate(pos, 1.5, 1.2, 2.5, {
         lidOverhang: 0.08,
         lidThickness: 0.1,
     });
 }
 
-export function makeBoxCrate(pos, size, material){
-    return makeCrate(pos, size, size, size, material, {
+export function makeBoxCrate(pos, size){
+    return makeCrate(pos, size, size, size, {
         lidOverhang: 0.05,
         lidThickness: 0.08,
     });
 }
     
-
-export function makeCrateStack(pos, baseSize, materials){
+//TODO: Randomise
+export function makeCrateStack(pos, baseSize){
     const stackGroup = new THREE.Group();
     stackGroup.position.set(pos.x, pos.y, pos.z);
 
     // Base crate
-    let randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const baseCrate = makeBoxCrate(new THREE.Vector3(0, 0, 0), baseSize, randMaterial);
+    const baseCrate = makeBoxCrate(new THREE.Vector3(0, 0, 0), baseSize);
     stackGroup.add(baseCrate);
 
     // Right crate (don't clone so we can still randomise material)
-    randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const rightCrate = makeBoxCrate(new THREE.Vector3(baseSize+0.15, 0, 0), baseSize, randMaterial);
+    const rightCrate = makeBoxCrate(new THREE.Vector3(baseSize+0.15, 0, 0), baseSize);
     stackGroup.add(rightCrate);
 
     // Bottom crate
-    randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const bottomCrate = makeBoxCrate(new THREE.Vector3(0, 0, -baseSize-0.15), baseSize, randMaterial);
+    const bottomCrate = makeBoxCrate(new THREE.Vector3(0, 0, -baseSize-0.15), baseSize);
     stackGroup.add(bottomCrate);
 
     // Top crate
-    randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const topCrate = makeBoxCrate(new THREE.Vector3(0, baseSize+0.08, 0), baseSize, randMaterial);
+    const topCrate = makeBoxCrate(new THREE.Vector3(0, baseSize+0.08, 0), baseSize);
     stackGroup.add(topCrate);
 
     stackGroup.castShadow = true;

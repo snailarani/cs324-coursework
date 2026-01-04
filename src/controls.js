@@ -12,7 +12,6 @@ let moveLeft = false;
 
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
-const speed = 23
 
 let forwardDir = new THREE.Vector3();
 let rightDir = new THREE.Vector3();
@@ -22,7 +21,7 @@ let ray_forward = new THREE.Raycaster( new THREE.Vector3(), forwardDir, 0, playe
 let ray_right = new THREE.Raycaster( new THREE.Vector3(), rightDir, 0, playerRadius );
 
 
-export function makeControls(camera, scene){
+export function makeControls(camera, scene, currentLevel){
     //Making pointer controls
     const controls = new PointerLockControls( camera, document.body );
 
@@ -91,7 +90,7 @@ export function makeControls(camera, scene){
 
     //add controls to pick up coins
     document.addEventListener('click', function(){
-        pickUpCoin(controls, camera, scene)
+        pickUpCoin(controls, camera, scene, currentLevel)
     })
 
     return controls
@@ -101,12 +100,11 @@ export function makeControls(camera, scene){
 const clickRay = new THREE.Raycaster();
 const maxClickDist = 10;
 
-function pickUpCoin(controls, camera, scene){
+function pickUpCoin(controls, camera, scene, currentLevel){
     if (!controls.isLocked){
         return
     }
 
-    const currentLevel=2
     let keyName;
 
     if (currentLevel==1){
@@ -125,30 +123,6 @@ function pickUpCoin(controls, camera, scene){
 
     let intersections = clickRay.intersectObjects(scene.children, true);
 
-    console.log("Found", intersections.length, "objects within range");
-        
-    //debugging
-    intersections.forEach(function (intersection) {
-        const hitObject = intersection.object;
-        
-        // Log all the info we can get
-        console.log("Hit object:", {
-            name: hitObject.name,
-            type: hitObject.type,
-            distance: intersection.distance.toFixed(2),
-            position: hitObject.position,
-            parent: hitObject.parent?.name || "no parent"
-        });
-
-        // Try to find the root object (like candy cane model)
-        let rootObject = hitObject;
-        while (rootObject.parent && rootObject.parent.type !== 'Scene') {
-            rootObject = rootObject.parent;
-        }
-        
-        console.log("Root object:", rootObject.name || rootObject.type);
-    });
-
     // get first object hit, and remove from scene
     const intersection = intersections[0]
     if (intersection!=null ){
@@ -158,10 +132,7 @@ function pickUpCoin(controls, camera, scene){
             collectKey()
         }
     }
-
-    scene.add(new THREE.ArrowHelper(clickRay.ray.direction, clickRay.ray.origin, 300, 0xff0000) );
 }
-
 
 
 
@@ -201,7 +172,7 @@ export function updateControls(delta, controls, objects, camera, currentLevel){
     let blockedForward = false;
 
     //Only raycast forward/backward if moving forward/backward
-    if (velocity.z !== 0) {
+    if (velocity.z != 0) {
         const dirZ = horizontalForward.clone().multiplyScalar(-Math.sign(velocity.z)); //right or left
         ray_forward.ray.origin.copy(playerPos);
         ray_forward.ray.origin.y -= ray_offset; //ray from chest position
@@ -213,7 +184,7 @@ export function updateControls(delta, controls, objects, camera, currentLevel){
     let blockedRight = false;
 
     //Only raycast left/right if moving left/right
-    if (velocity.x !== 0) {
+    if (velocity.x != 0) {
         const dirX = rightVector.clone().multiplyScalar(-Math.sign(velocity.x)); //forward or backward
         ray_right.ray.origin.copy(playerPos);
         ray_right.ray.origin.y -= ray_offset; //ray from chest position

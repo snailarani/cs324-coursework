@@ -1,5 +1,4 @@
 import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js"
-import { OrbitControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/OrbitControls.js"
 
 import { loadLevel1 } from "./level1.js";
 import { loadLevel2 } from "./level2.js";
@@ -7,8 +6,8 @@ import {makeControls, updateControls} from "./controls.js"
 import { gameInit } from "./game.js";
 
 const clock = new THREE.Clock()
-const DEBUG_MODE = true;
 
+var currentLevel=1
 function animate(renderer, scene, camera, objects, controls, currentLevel, sky) {
     function loop() {
         requestAnimationFrame(loop);
@@ -21,10 +20,8 @@ function animate(renderer, scene, camera, objects, controls, currentLevel, sky) 
     loop();
 }
 
-var currentLevel=1;
 
-
-function init(){
+function main(){
     //Initialise Renderer
     const renderer = new THREE.WebGLRenderer();
     renderer.shadowMap.enabled = true;
@@ -62,7 +59,7 @@ function init(){
 
         // Once loaded, add controls and begin
         // add controls
-        const controls = makeControls(camera, scene)
+        const controls = makeControls(camera, scene, currentLevel)
         scene.add(controls.object)
 
         gameInit(10, door, currentLevel)
@@ -71,4 +68,4 @@ function init(){
     });
 }
 
-init();
+main();

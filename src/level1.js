@@ -13,8 +13,7 @@ export async function loadLevel1(scene, camera){
 
     //camera, scene
     camera.position.set(0,1.7,roomSize/2-1);
-    //TODO: set to black
-    scene.background = new THREE.Color(0xffffff);
+    scene.background = new THREE.Color(0x000000);
 
     //Lighting
     level1Lighting(scene, camera);
@@ -22,31 +21,23 @@ export async function loadLevel1(scene, camera){
     //Environment
     level1Env(scene, objects)
 
+    const door = loadDoor(scene, objects)
+
     //sounds
     camera.add(listener);
-    // await loadSounds(listener)
+    await loadSounds(listener)
 
     //external models
-    // await loadExtModels(scene, objects)
+    await loadExtModels(scene, objects)
 
-    // ADD GRID HELPER - shows coordinate grid
-    const gridHelper = new THREE.GridHelper(roomSize, roomSize, 0x00ff00, 0x444444);
-    gridHelper.position.candyY = 0.01; // Slightly above floor to be visible
-    scene.add(gridHelper);
-
-    // ADD AXES HELPER - shows X (red), Y (green), Z (blue) axes
-    const axesHelper = new THREE.AxesHelper(50);
-    scene.add(axesHelper);
-    addGridLabels(scene);
-    addGridLabels(scene)
-
-    return objects
+    return {objects, door}
 }
+
 
 //TODO-remove
 function addGridLabels(scene) {
-    const labelStep = 2; // Label every 10 units
-    const labelRange = (roomSize-1)/2; // From -50 to +50
+    const labelStep = 0.5; // Label every 10 units
+    const labelRange = (roomSize)/2; // From -50 to +50
     
     for (let i = -labelRange; i <= labelRange; i += labelStep) {
         if (i === 0) continue; // Skip center
@@ -60,7 +51,7 @@ function addGridLabels(scene) {
         // Draw the number
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.fillStyle = 'white';
-        context.font = 'Bold 64px Arial';
+        context.font = 'Bold 20px Arial';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillText(i.toString(), 64, 64);
@@ -94,7 +85,7 @@ function addGridLabels(scene) {
 
 function level1Lighting(scene, camera){
     //ambient light TODO: set to 0.03
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.03)
     scene.add(ambientLight)
 
     //player torch
@@ -115,14 +106,41 @@ function level1Lighting(scene, camera){
 
 }
 
+function loadDoor(scene, objects){
+    // door
+    const doorMat = makeMaterial({
+        textureSrc : './assets/textures/door1/doorcol.jpg',
+        roughness: 0.5,
+        metalness: 0.1,
+        repeat: [1,2],
+    });
+
+    const frameMat = makeMaterial({
+        textureSrc : './assets/textures/door1/framecol.jpg',
+        roughness: 0.5,
+        metalness: 0.1,
+    });
+
+    const knobMat = makeMaterial({
+        textureSrc : './assets/textures/door1/knobcol.jpg',
+        normalSrcSrc : './assets/textures/door1/knobnorm.jpg',
+        metalness: 0.5,
+    })
+
+    const door = Env.makeDoor(new THREE.Vector3(0, 0, -roomSize/2+0.1), doorMat, frameMat, knobMat, 1.1);
+    scene.add(door)
+    objects.push(door)
+
+    return door
+
+}
+
 function level1Env(scene, objects){
     const envObjects =[];
 
     //floor
     const floorMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipfloorcol.jpg',
-        roughnessSrc: 'assets/textures/shipfloorrough.jpg',
-        normalSrc: 'assets/textures/shipfloornorm.jpg',
         repeat: [5,5],
     })
     const floor = Env.makeFloor(0, roomSize, floorMaterial);
@@ -132,20 +150,17 @@ function level1Env(scene, objects){
     //roof TODO:add back
     const roofMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipwallcol.jpg',
-        roughnessSrc: 'assets/textures/shipwallrough.jpg',
-        normalSrc: 'assets/textures/shipwallnorm.jpg',
         repeat: [5,5],
     })
     const roof = Env.makeWall(new THREE.Vector3(0, roomHeight, 0), wallThickness, roomSize, roomSize, roofMaterial);
     roof.rotateZ( - Math.PI / 2 );
-    // envObjects.push(roof);
+    envObjects.push(roof);
 
 
     //outer walls (boundaries)
     const wallMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipwallcol.jpg',
-        roughnessSrc: 'assets/textures/shipwallrough.jpg',
-        normalSrc: 'assets/textures/shipwallnorm.jpg',
+        normalSrc: 'assets/textures/shipwallnorm.jpg',  
         repeat: [2,0.5],
     })
     
@@ -169,6 +184,16 @@ function level1Env(scene, objects){
 
 
     //inner walls
+    const innerWall1 = Env.makeWall(new THREE.Vector3(-roomSize/6*2, roomHeight/2, roomSize/6), wallThickness, roomHeight, roomSize/3, wallMaterial);
+    innerWall1.rotateY( - Math.PI / 2 );
+
+    const innerWall2 = innerWall1.clone()
+    innerWall2.position.set(-roomSize/6*2, roomHeight/2,-roomSize/6)
+
+    envObjects.push(innerWall1)
+    envObjects.push(innerWall2)
+
+
     const doorway1 = Env.makeWallWithDoorway(new THREE.Vector3(-roomSize/6, roomHeight/2, roomSize/3), roomSize/3, roomHeight, wallThickness, 2.5, 3, wallMaterial);
     doorway1.rotateY(- Math.PI / 2);
 
@@ -193,15 +218,6 @@ function level1Env(scene, objects){
     envObjects.push(doorway5);
 
 
-    const innerWall1 = Env.makeWall(new THREE.Vector3(-roomSize/6*2, roomHeight/2, roomSize/6), wallThickness, roomHeight, roomSize/3, wallMaterial);
-    innerWall1.rotateY( - Math.PI / 2 );
-
-    const innerWall2 = innerWall1.clone()
-    innerWall2.position.set(-roomSize/6*2, roomHeight/2,-roomSize/6)
-
-    envObjects.push(innerWall1)
-    envObjects.push(innerWall2)
-
 
     //center pole
     const poleGeometry = new THREE.CylinderGeometry(1, 1, roomHeight, 16);
@@ -213,49 +229,32 @@ function level1Env(scene, objects){
 
 
     //crates
-    const crateMat1 = makeMaterial({
-        textureSrc: 'assets/textures/crate1col.jpg',
-        roughnessSrc: 'assets/textures/crate1rough.jpg',
-        normalSrc: 'assets/textures/crate1norm.jpg',
-        roughness: 0.7,
-        repeat: [1,1],
-    })
-
-    const crateMat2 = makeMaterial({
-        textureSrc: 'assets/textures/crate2col.jpg',
-        roughnessSrc: 'assets/textures/crate2rough.jpg',
-        normalSrc: 'assets/textures/crate2norm.jpg',
-        roughness: 0.7,
-        repeat: [1,1],
-    })
-
-    const crateMats = [crateMat1, crateMat2]
 
     //crate stacks
-    const crateStack1 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+1,0,roomSize/2-1), 1.3, crateMats);
-    const crateStack2 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+2,0,0), 1, crateMats);
+    const crateStack1 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+1,0,roomSize/2-1), 1.3);
+    const crateStack2 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+2,0,0), 1);
     crateStack2.rotateY(Math.PI/4);
-    const crateStack3 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+1.5,0,-roomSize/2+1.5), 1.2, crateMats);
+    const crateStack3 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+1.5,0,-roomSize/2+1.5), 1.2);
     crateStack3.rotateY(-Math.PI/2);
-    const crateStack4 = Env.makeCrateStack(new THREE.Vector3(-roomSize/6-2.5,0,-roomSize/6-0.5), 0.8, crateMats);
-    const crateStack5 = Env.makeCrateStack(new THREE.Vector3(roomSize/6+1,0,-4), 1, crateMats);
+    const crateStack4 = Env.makeCrateStack(new THREE.Vector3(-roomSize/6-2.5,0,-roomSize/6-0.5), 0.8);
+    const crateStack5 = Env.makeCrateStack(new THREE.Vector3(roomSize/6+1,0,-4), 1);
     crateStack5.rotateY(-Math.PI/2);
-    const crateStack6 = Env.makeCrateStack(new THREE.Vector3(roomSize/6-1,0,-roomSize/6), 1, crateMats);
+    const crateStack6 = Env.makeCrateStack(new THREE.Vector3(roomSize/6-1,0,-roomSize/6), 1);
     crateStack6.rotateY(Math.PI)
 
     //big crates
-    const bigCrate1 = Env.makeBigCrate(new THREE.Vector3(-roomSize/3+1.5,0,roomSize/3-2), crateMat1);
+    const bigCrate1 = Env.makeBigCrate(new THREE.Vector3(-roomSize/3+1.5,0,roomSize/3-2));
     bigCrate1.rotateY(Math.PI/2);
-    const bigCrate2 = Env.makeBigCrate(new THREE.Vector3(-roomSize/6-2,0,roomSize/6-1), crateMat1);
+    const bigCrate2 = Env.makeBigCrate(new THREE.Vector3(-roomSize/6-2,0,roomSize/6-1));
     bigCrate2.rotateY(Math.PI/2);
-    const bigCrate3 = Env.makeBigCrate(new THREE.Vector3(roomSize/2-1,0,0), crateMat1);
-    const bigCrate4 = Env.makeBigCrate(new THREE.Vector3(-roomSize/6+1,0,roomSize/6), crateMat1);
+    const bigCrate3 = Env.makeBigCrate(new THREE.Vector3(roomSize/2-1,0,0));
+    const bigCrate4 = Env.makeBigCrate(new THREE.Vector3(-roomSize/6+1,0,roomSize/6));
 
     // box crates
-    const boxCrate1 = Env.makeBoxCrate(new THREE.Vector3(-roomSize/3+2,0,-roomSize/6+1), 1.2, crateMat2);
-    const boxCrate2 = Env.makeBoxCrate(new THREE.Vector3(-roomSize/6-0.5,0,-roomSize/6-0.5), 0.7, crateMat2);
-    const boxCrate3 = Env.makeBoxCrate(new THREE.Vector3(roomSize/2-1,0,2), 1.1, crateMat1);
-    const boxCrate4 = Env.makeBoxCrate(new THREE.Vector3(roomSize/6-1.5 ,0,roomSize/2-1.5), 1.6, crateMat1);
+    const boxCrate1 = Env.makeBoxCrate(new THREE.Vector3(-roomSize/3+2,0,-roomSize/6+1), 1.22);
+    const boxCrate2 = Env.makeBoxCrate(new THREE.Vector3(-roomSize/6-0.5,0,-roomSize/6-0.5), 0.72);
+    const boxCrate3 = Env.makeBoxCrate(new THREE.Vector3(roomSize/2-1,0,2), 1.11);
+    const boxCrate4 = Env.makeBoxCrate(new THREE.Vector3(roomSize/6-1.5 ,0,roomSize/2-1.5), 1.61);
 
     envObjects.push(crateStack1)
     envObjects.push(crateStack2)
@@ -273,34 +272,6 @@ function level1Env(scene, objects){
     envObjects.push(boxCrate2)
     envObjects.push(boxCrate3)
     envObjects.push(boxCrate4)
-    
-    // door
-    const doorMat = makeMaterial({
-        textureSrc : './assets/textures/door1/doorcol.jpg',
-        roughnessSrc : './assets/textures/door1/doorrough.jpg',
-        normalSrcSrc : './assets/textures/door1/doornorm.jpg',
-        roughness: 0.7,
-        metalness: 0.1,
-        repeat: [1,2],
-    });
-
-    const frameMat = makeMaterial({
-        textureSrc : './assets/textures/door1/framecol.jpg',
-        roughnessSrc : './assets/textures/door1/framerough.jpg',
-        normalSrcSrc : './assets/textures/door1/framenorm.jpg',
-        roughness: 0.7,
-        metalness: 0.1,
-    });
-
-    const knobMat = makeMaterial({
-        textureSrc : './assets/textures/door1/knobcol.jpg',
-        roughnessSrc : './assets/textures/door1/knobrough.jpg',
-        normalSrcSrc : './assets/textures/door1/knobnorm.jpg',
-        metalness: 0.5,
-    })
-
-    const door = Env.makeDoor(new THREE.Vector3(0, 0, -roomSize/2+0.1), doorMat, frameMat, knobMat, 1.1);
-    envObjects.push(door)
 
     //torches
     const torch1 = Env.createTorch(roomSize/2-wallThickness, 2, 0, 0); 
@@ -328,37 +299,58 @@ async function loadExtModels(scene, objects){
     envObjects.push(bed)
 
     //chests
-    const chest1 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(-8,0,roomSize/6+1), 0, 0.5)
-    const chest2 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(roomSize/3+2,0,roomSize/6+1), -Math.PI/2, 0.5)
-    const chest3 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(roomSize/6-1,0,roomSize/4+1), -Math.PI/2, 0.5)
-    const chest4 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(roomSize/3+1.5,0,-roomSize/2+2), -Math.PI/2, 0.7)
+    const chest1 = await loadObject('./assets/models/chest/chest.obj', './assets/models/chest/chest.mtl', new THREE.Vector3(-7,0,roomSize/6+1), 0, 0.6)
+    
+    const chest2 = chest1.clone()
+    chest2.position.set(roomSize/3+2,0,roomSize/6+1)
+    chest2.rotateY(-Math.PI/2)
+
+    const chest3 = chest1.clone()
+    chest3.position.set(-roomSize/6-1.1,0,-roomSize/2+1)
+    chest3.scale.setScalar(0.5)
+
+    const chest4 = chest2.clone()
+    chest4.position.set(roomSize/3+1.5,0,-roomSize/2+2)
+    chest4.scale.setScalar(0.85)
 
     envObjects.push(chest1)
     envObjects.push(chest2)
     envObjects.push(chest3)
     envObjects.push(chest4)
 
-    //barrels
-    const barrel1 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(roomSize/6+0.8,0,3), Math.PI/2, 0.01)
-    const barrel2 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(roomSize/6+1,0,-6), Math.PI/2, 0.013)
-    const barrel3 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(-roomSize/6-0.8,0,-roomSize/2+1), Math.PI, 0.011)
-    const barrel4 = await loadObject('./assets/models/barrel/barrel.obj', './assets/models/barrel/barrel.mtl', new THREE.Vector3(roomSize/2-1,0,-roomSize/6), -Math.PI/2, 0.015)
-
-    envObjects.push(barrel1)
-    envObjects.push(barrel2)
-    envObjects.push(barrel3)
-    envObjects.push(barrel4)
-
     //coins - might have seperate function for collectibles
-    // const coin = await loadObject('./assets/models/key1/coin.obj', './assets/models/key1/coin.mtl', new THREE.Vector3(0,1,5), -Math.PI/2, 0.1)
+    const coinObjSrc = './assets/models/key1/coin.obj'
+    const coinObjMtl = './assets/models/key1/coin.mtl'
+    const coinPos = [
+        [-2,1.35,4.2],
+        [2.7,0,8.6],
+        [0.55,1.12,-3],
+
+        [-8.5,0,3.5],
+        [-6.5,1.42,8],
+
+        [-7,0,-1.3],
+        [-3.3,0,1.6],
+
+        [-7,0,-8.5],
+
+        [5.5,0,8.6],
+        [5,0,2.41],
+        [5.1,1.12,-4],
+        [8.6,0,-8.7],
+    ]
+
+    let pos;
+    for (let i=0; i<coinPos.length; i++){
+        pos = new THREE.Vector3(coinPos[i][0], coinPos[i][1], coinPos[i][2])
+        const coin = await loadObject(coinObjSrc, coinObjMtl, pos, 0, 0.1, false)
+        envObjects.push(coin)
+    }
 
     envObjects.forEach(function (object) {
         scene.add(object);
         objects.push(object)
     });
-
-    
-
 }
 
 async function loadSounds(listener) {
