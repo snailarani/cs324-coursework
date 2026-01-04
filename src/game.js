@@ -5,7 +5,7 @@ let door;
 
 export function gameInit(n, d, currentLevel){
     //initalise counters
-    numKeys = (currentLevel==1) ? 12 : 3
+    numKeys = (currentLevel==1) ? 12 : 25
     counter = 0
 
     //define door

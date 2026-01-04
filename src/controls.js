@@ -47,6 +47,7 @@ export function makeControls(camera, scene, currentLevel){
         blocker.style.display = 'flex';  
         instructions.style.display = 'flex'; 
         pauseBgAudio();
+        stopWalkAudio();
 
     } );
 
@@ -95,7 +96,10 @@ export function makeControls(camera, scene, currentLevel){
                 moveRight = false;
                 break;
         }
-        stopWalkAudio()
+    }
+        
+    if (!moveForward && !moveBackward && !moveLeft && !moveRight) {
+        stopWalkAudio();
     }
 
     document.addEventListener('keydown', onKeyDown);
@@ -152,7 +156,7 @@ function pickUpCoin(controls, camera, scene, currentLevel){
 
 export function updateControls(delta, controls, objects, camera, currentLevel){
 
-    const speed = (currentLevel==1) ? 18 : 15;
+    const speed = (currentLevel==1) ? 12 : 15;
     const ray_offset = (currentLevel==1) ? 1 : 0;
 
     if (!controls.isLocked) {

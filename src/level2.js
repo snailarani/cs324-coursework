@@ -2,7 +2,7 @@ import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import seedrandom from 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/+esm';
 import PoissonDiskSampling from 'https://cdn.jsdelivr.net/npm/poisson-disk-sampling@2.3.1/+esm';
 import * as Env from './environment.js';
-import { makeMaterial, loadAudio, loadObject } from './utils.js';
+import { makeMaterial, loadObject } from './utils.js';
 import { initAudio, loadBgAudio, loadFloorAudio, loadKeyAudio, loadDoorAudio } from './sounds.js';
 
 const roomSize = 55

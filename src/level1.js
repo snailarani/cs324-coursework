@@ -7,7 +7,7 @@ const roomSize = 18;
 const roomHeight = 4;
 const wallThickness = 0.2;
 
-
+//TODO: just have 1 texture for all crates
 export async function loadLevel1(scene, camera){
     const objects = [];
 
@@ -263,7 +263,7 @@ async function loadExtModels(scene, objects){
 
     const chest4 = chest2.clone()
     chest4.position.set(roomSize/3+1.5,0,-roomSize/2+2)
-    chest4.scale.setScalar(0.85)
+    chest4.scale.setScalar(0.8)
 
     envObjects.push(chest1)
     envObjects.push(chest2)
@@ -307,9 +307,9 @@ async function loadExtModels(scene, objects){
 
 async function loadSounds() {
     const storm = await loadBgAudio('./assets/audio/storm.mp3', {loop:true, volume:0.4});
-    const waves = await await loadBgAudio('./assets/audio/music.mp3', {loop:true, volume:0.3});
-    const floor = await loadFloorAudio('./assets/audio/floor1.mp3', {loop:true, volume:1.3});
-    const door = await loadKeyAudio('./assets/audio/keys1.mp3', {volume:1.5});
+    const waves = await await loadBgAudio('./assets/audio/waves.mp3', {loop:true, volume:0.3});
+    const floor = await loadFloorAudio('./assets/audio/floor1.mp3', {loop:true, volume:1.1});
+    const door = await loadKeyAudio('./assets/audio/keys1.wav', {volume:1.5});
     const keys = await loadDoorAudio('./assets/audio/door1.wav', {volume:1.3});
 }
 

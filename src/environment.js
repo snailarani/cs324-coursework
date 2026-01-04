@@ -96,18 +96,18 @@ export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHe
 }
 
 
-//crate materials (not worth making a new file for)
-const crateMat1 = makeMaterial({
-    textureSrc: 'assets/textures/crate1col.jpg',
-    roughnessSrc: 'assets/textures/crate1rough.jpg',
-    normalSrc: 'assets/textures/crate1norm.jpg',
-    roughness: 0.7,
-    repeat: [1,1],
-    //todo:remove
-    // color: 0x689b21,
-})
+// //crate materials (not worth making a new file for)
+// const crateMat1 = makeMaterial({
+//     textureSrc: 'assets/textures/crate1col.jpg',
+//     roughnessSrc: 'assets/textures/crate1rough.jpg',
+//     normalSrc: 'assets/textures/crate1norm.jpg',
+//     roughness: 0.7,
+//     repeat: [1,1],
+//     //todo:remove
+//     // color: 0x689b21,
+// })
 
-const crateMat2 = makeMaterial({
+const crateMat = makeMaterial({
     textureSrc: 'assets/textures/crate2col.jpg',
     roughnessSrc: 'assets/textures/crate2rough.jpg',
     normalSrc: 'assets/textures/crate2norm.jpg',
@@ -116,9 +116,6 @@ const crateMat2 = makeMaterial({
         //todo:remove
     // color: 0x689b21,
 })
-
-const crateMats = [crateMat1, crateMat2]
-
 
 export function makeCrate(pos, width, height, depth, options = {}){
     const{
@@ -130,7 +127,6 @@ export function makeCrate(pos, width, height, depth, options = {}){
     crateGroup.position.set(pos.x, pos.y, pos.z);
 
     const crateGeometry = new THREE.BoxGeometry(width, height, depth);
-    const crateMat = crateMats[Math.floor(Math.random()*crateMats.length)] //random material
     const crate = new THREE.Mesh(crateGeometry, crateMat);
     crate.position.set(0, height/2 + lidThickness, 0); 
     crate.castShadow = true;
