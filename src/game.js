@@ -3,18 +3,35 @@ let numKeys;
 let counter;
 let door;
 
-export function gameInit(n, d){
-    numKeys = 1
+export function gameInit(n, d, currentLevel){
+    //initalise counters
+    numKeys = (currentLevel==1) ? 10 : 25
+    //TODO:remove
+    // numKeys=1
     counter = 0
+
+    //define door
     door = d
-    document.getElementById('key-img').innerHTML = `<img src="./assets/candycane.png" width = 40>`
+
+    //update overlay counter
+    if (currentLevel==1){
+        document.getElementById('key-img').innerHTML = `<img src="./assets/coin.png" width = 40>`
+    }
+    else{
+        document.getElementById('key-img').innerHTML = `<img src="./assets/candycane.png" width = 40>`
+    }
     document.getElementById('key-counter').textContent = `${counter}/${numKeys}`;
 }
+
 
 export function collectKey(){
     counter++
     console.log("Keys:", counter + "/" + numKeys);
-    document.getElementById('key-counter').textContent = `${counter}/${numKeys}`;
+
+    //update overlay counter
+    document.getElementById('key-counter').textContent = `${counter}/${numKeys}`
+
+    //update ui and complete level if all keys are collected
     if(counter == numKeys){
         document.getElementById('top-box').style.width = `500px`
         document.getElementById('key-counter').style.fontSize = `20px`
@@ -25,6 +42,7 @@ export function collectKey(){
     }
 }
 
+
 //TODO; maybe add light to door
 export function levelComplete(doorGroup){
     const door = doorGroup.getObjectByName('door')
@@ -33,7 +51,6 @@ export function levelComplete(doorGroup){
     door.material.emissive.set(0xffffff)
     door.material.emissiveIntensity = 0.8
     knob.visible = false
-    
 }
 
 

@@ -9,7 +9,6 @@ const treeZone = 53
 const roomHeight = 5
 const wallThickness = 0.2
 
-
 export async function loadLevel2(scene, camera){
 
     const objects = []
@@ -25,32 +24,15 @@ export async function loadLevel2(scene, camera){
     //Environment
     level2Env(scene, objects)
 
-    loadCoins(scene)
-
     const door = loadDoor(scene, objects)
 
     //sounds
-    // loadSounds(listener)
+    loadSounds(listener)
 
     //external models
-    // loadExtModels(scene, objects)
-
-    //game logic
-
-
-
-    //animate
-
+    loadExtModels(scene, objects)
 
     return {objects, door}
-}
-
-async function loadCoins(scene){
-    //candy
-    const candy = await loadObject('./assets/models/key2/CandyCane.obj', './assets/models/key2/CandyCane.mtl', new THREE.Vector3(0,1,0), -Math.PI/2, 0.5, false)
-    candy.userData.collectible = true;
-
-    scene.add(candy)
 }
 
 function loadDoor(scene, objects){
@@ -190,7 +172,7 @@ function level2Env(scene, objects){
     let randScale;
     treePoints.forEach(point => {
         const treePos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
-        randScale = Math.random() * 0.9 + 0.5;
+        randScale = Math.random() * 0.7 + 0.7;
         const tree = Env.createTree(treePos, randScale);
         envObjects.push(tree);
     });
@@ -210,7 +192,7 @@ function level2Env(scene, objects){
 
     rockPoints.forEach(point => {
         const rockPos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
-        randScale = Math.random() * 1 + 0.2;
+        randScale = Math.random() * 0.4 + 0.7;
         const rock = Env.createRock(rockPos, randScale);
         envObjects.push(rock);
     });
@@ -260,9 +242,54 @@ async function loadExtModels(scene, objects){
     envObjects.push(snowman4)
     envObjects.push(snowman5)
 
-
     //candy
-    // const candy = await loadObject('./assets/models/key2/CandyCane.obj', './assets/models/key2/CandyCane.mtl', new THREE.Vector3(0,1,5), -Math.PI/2, 0.5)
+    const candyObjSrc = './assets/models/key2/CandyCane.obj'
+    const candyObjMtl = './assets/models/key2/CandyCane.mtl'
+    const candyY = -0.05
+    const candyPos = [
+        [-4,4],
+        [-3.5,11],
+        [-16,12],
+        [-11,21],
+        [-22,17],
+        [-26,5],
+
+        [-26,-5],
+        [-16,-9],
+        [-15,-15],
+        [-19,-21],
+        [-5.5,-15],
+        [-6, -26.5],
+
+        [8,-8],
+        [18,-2],
+        [26.5,4],
+        [22,-17],
+        [17,-21],
+        [15,-26],
+
+        [7,7],
+        [16,5],
+        [15,15],
+        [3.5,19],
+        [13,24],
+        [24,11],
+        [19,18],
+    ]
+
+    let pos;
+    let rot;
+    let tilt;
+    let scale;
+    for (let i=0; i<candyPos.length; i++){
+        pos = new THREE.Vector3(candyPos[i][0], candyY, candyPos[i][1])
+        rot = Math.PI/(Math.random()*16-8)
+        scale = Math.random()*0.2+0.4
+        tilt = (Math.random() - 0.5) * (Math.PI / 6)
+        const candy = await loadObject(candyObjSrc, candyObjMtl, pos, rot, scale, false)
+        candy.rotateZ(tilt)
+        envObjects.push(candy)
+    }
 
     envObjects.forEach(function (object) {
         scene.add(object);
@@ -294,7 +321,6 @@ function addIcicles(count) {
     }
     return icicles
 }
-
 
 
 async function loadSounds(listener){

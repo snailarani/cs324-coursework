@@ -13,7 +13,8 @@ export async function loadLevel1(scene, camera){
 
     //camera, scene
     camera.position.set(0,1.7,roomSize/2-1);
-    scene.background = new THREE.Color(0x000000);
+    //TODO: set to black
+    scene.background = new THREE.Color(0xffffff);
 
     //Lighting
     level1Lighting(scene, camera);
@@ -23,22 +24,77 @@ export async function loadLevel1(scene, camera){
 
     //sounds
     camera.add(listener);
-    await loadSounds(listener)
+    // await loadSounds(listener)
 
     //external models
-    await loadExtModels(scene, objects)
+    // await loadExtModels(scene, objects)
 
-    //Game Logic
+    // ADD GRID HELPER - shows coordinate grid
+    const gridHelper = new THREE.GridHelper(roomSize, roomSize, 0x00ff00, 0x444444);
+    gridHelper.position.candyY = 0.01; // Slightly above floor to be visible
+    scene.add(gridHelper);
 
-    //Animate
+    // ADD AXES HELPER - shows X (red), Y (green), Z (blue) axes
+    const axesHelper = new THREE.AxesHelper(50);
+    scene.add(axesHelper);
+    addGridLabels(scene);
+    addGridLabels(scene)
 
     return objects
 }
 
+//TODO-remove
+function addGridLabels(scene) {
+    const labelStep = 2; // Label every 10 units
+    const labelRange = (roomSize-1)/2; // From -50 to +50
+    
+    for (let i = -labelRange; i <= labelRange; i += labelStep) {
+        if (i === 0) continue; // Skip center
+        
+        // Create a NEW canvas for each number
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 128;
+        canvas.height = 128;
+        
+        // Draw the number
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = 'white';
+        context.font = 'Bold 64px Arial';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(i.toString(), 64, 64);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        
+        // X-axis labels
+        const spriteMaterialX = new THREE.SpriteMaterial({ 
+            map: texture.clone(),
+            depthTest: false,
+            depthWrite: false
+        });
+        const spriteX = new THREE.Sprite(spriteMaterialX);
+        spriteX.position.set(i, 0.1, 0);
+        spriteX.scale.set(2, 2, 1);
+        scene.add(spriteX);
+        
+        // Z-axis labels
+        const spriteMaterialZ = new THREE.SpriteMaterial({ 
+            map: texture.clone(),
+            depthTest: false,
+            depthWrite: false
+        });
+        const spriteZ = new THREE.Sprite(spriteMaterialZ);
+        spriteZ.position.set(0, 0.1, i);
+        spriteZ.scale.set(2, 2, 1);
+        scene.add(spriteZ);
+    }
+}
+
 
 function level1Lighting(scene, camera){
-    //ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.03)
+    //ambient light TODO: set to 0.03
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1)
     scene.add(ambientLight)
 
     //player torch
@@ -73,7 +129,7 @@ function level1Env(scene, objects){
     envObjects.push(floor);
 
 
-    //roof
+    //roof TODO:add back
     const roofMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipwallcol.jpg',
         roughnessSrc: 'assets/textures/shipwallrough.jpg',
@@ -82,7 +138,7 @@ function level1Env(scene, objects){
     })
     const roof = Env.makeWall(new THREE.Vector3(0, roomHeight, 0), wallThickness, roomSize, roomSize, roofMaterial);
     roof.rotateZ( - Math.PI / 2 );
-    envObjects.push(roof);
+    // envObjects.push(roof);
 
 
     //outer walls (boundaries)

@@ -1,4 +1,5 @@
 import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js"
+import { OrbitControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/OrbitControls.js"
 
 import { loadLevel1 } from "./level1.js";
 import { loadLevel2 } from "./level2.js";
@@ -6,11 +7,12 @@ import {makeControls, updateControls} from "./controls.js"
 import { gameInit } from "./game.js";
 
 const clock = new THREE.Clock()
+const DEBUG_MODE = true;
 
-function animate(renderer, scene, camera, controls, objects, sky) {
+function animate(renderer, scene, camera, objects, controls, currentLevel, sky) {
     function loop() {
         requestAnimationFrame(loop);
-        updateControls(clock.getDelta(), controls, objects, camera, 23, 1) //0 for level 2
+        updateControls(clock.getDelta(), controls, objects, camera, currentLevel) //0 for level 2
         renderer.render(scene, camera);
         if(sky!=null){
             sky.position.copy(camera.position)
@@ -19,14 +21,15 @@ function animate(renderer, scene, camera, controls, objects, sky) {
     loop();
 }
 
-var currentLevel;
+var currentLevel=1;
+
+
 function init(){
     //Initialise Renderer
     const renderer = new THREE.WebGLRenderer();
     renderer.shadowMap.enabled = true;
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-
 
     //Initialise camera:
     const camera = new THREE.PerspectiveCamera(
@@ -39,49 +42,33 @@ function init(){
     //Initialise scene
     const scene = new THREE.Scene();
 
-    //add controls
-    const controls = makeControls(camera, scene)
-    scene.add(controls.object)
+    //load environment based on level
+    let loadLevel;
+    if (currentLevel == 1){
+        loadLevel = loadLevel1
+    }
+    else{
+        loadLevel = loadLevel2
+    }
 
     //load level
-    loadLevel2(scene, camera).then(function ({objects, door}) {
-        // Once loaded, start
-        gameInit(10, door)
-        animate(renderer, scene, camera, controls, objects);
-    });
+    loadLevel(scene, camera).then(function ({objects, door}) {
+        renderer.compile(scene, camera);
 
-    
+        // Render a few frames to warm up
+        for(let i = 0; i < 10; i++) {
+            renderer.render(scene, camera);
+        }
+
+        // Once loaded, add controls and begin
+        // add controls
+        const controls = makeControls(camera, scene)
+        scene.add(controls.object)
+
+        gameInit(10, door, currentLevel)
+
+        animate(renderer, scene, camera, objects, controls, currentLevel);
+    });
 }
 
 init();
-
-
-// Camera set up
-// const camera = new THREE.PerspectiveCamera(
-//     75,
-//     window.innerWidth / window.innerHeight,
-//     0.1,
-//     1000
-// );
-// camera.position.set(0,1.7,0);
-
-
-// Create renderer
-// const renderer = new THREE.WebGLRenderer();
-// renderer.shadowMap.enabled = true;
-
-// renderer.setSize(window.innerWidth, window.innerHeight);
-// document.body.appendChild(renderer.domElement); 
-
-// const sky = null;
-
-// // const {scene, objects, camera} = makeLevel1();
-// const {scene, objects, camera} = makeLevel2();
-
-
-// // Create controls object
-// const controls = makeControls(camera);
-// scene.add(controls.object);
-
-
-// animate(renderer, scene, camera, sky);

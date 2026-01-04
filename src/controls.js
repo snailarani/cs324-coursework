@@ -14,8 +14,8 @@ const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 const speed = 23
 
-let forwardDir = new THREE.Vector3;
-let rightDir = new THREE.Vector3;
+let forwardDir = new THREE.Vector3();
+let rightDir = new THREE.Vector3();
 
 let playerRadius = 0.5
 let ray_forward = new THREE.Raycaster( new THREE.Vector3(), forwardDir, 0, playerRadius );
@@ -165,7 +165,11 @@ function pickUpCoin(controls, camera, scene){
 
 
 
-export function updateControls(delta, controls, objects, camera, speed, ray_offset){
+export function updateControls(delta, controls, objects, camera, currentLevel){
+
+    const speed = (currentLevel==1) ? 23 : 23;
+    const ray_offset = (currentLevel==1) ? 1 : 0;
+
 
     //Only move if cursor is locked
     if (!controls.isLocked) return;
