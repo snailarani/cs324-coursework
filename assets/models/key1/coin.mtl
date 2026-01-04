@@ -8,4 +8,3 @@ d 1.0                   # Opacity - fully opaque
 illum 2                 # Illumination model
 
 map_Kd coincol.png
-map_Bump coinnorm.png

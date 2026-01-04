@@ -1,186 +1,42 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
-import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
-import * as Env from './environment.js';
-import { makeMaterial, loadAudio, loadObject } from './utils.js';
 import seedrandom from 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/+esm';
 import PoissonDiskSampling from 'https://cdn.jsdelivr.net/npm/poisson-disk-sampling@2.3.1/+esm';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import * as Env from './environment.js';
+import { makeMaterial, loadObject } from './utils.js';
+import { initAudio, loadBgAudio, loadFloorAudio, loadKeyAudio, loadDoorAudio } from './sounds.js';
 
+const roomSize = 55
+const treeZone = 53
+const roomHeight = 5
+const wallThickness = 0.2
 
+export async function loadLevel2(scene, camera){
+    const objects = []
 
-const roomSize = 55;
-const treeZone =53
-const roomHeight = 5;
-const wallThickness = 0.2;
-
-export function makeLevel2(){
-    //set up camera
-    const camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
+    //camera, scene
     camera.position.set(-2,1.7,-1.5);
-
-    //set up scene
-    const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
-    //set up sound listener
-    const listener = new THREE.AudioListener();
-    camera.add(listener);
+    //lighting
+    level2Lighting(scene, camera)
 
-    loadSounds(listener);
-    
+    //Environment
+    level2Env(scene, objects)
 
-    //lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15)
-    scene.add(ambientLight)
+    //door
+    const door = loadDoor(scene, objects)
 
-    // moonlight
-    const dirLight = new THREE.DirectionalLight(0xA8CCFF, 0.4); //blue tint for moonlight
-    dirLight.position.set(0,10,3);
-    dirLight.castShadow = true;
-    dirLight.shadow.camera.left = -roomSize;
-    dirLight.shadow.camera.right = roomSize;
-    dirLight.shadow.camera.top = roomSize;
-    dirLight.shadow.camera.bottom = -roomSize;
-    dirLight.shadow.camera.near = 0.1;
-    dirLight.shadow.camera.far = 100;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.bias = -0.001;
-    scene.add(dirLight);
+    //sounds
+    initAudio(camera)
+    await loadSounds()
 
-    // hemisphere light for aurora effect
-    const hemisphereLight = new THREE.HemisphereLight(
-        0x7799cc,  // Aurora sky color (blue-purple)
-        0x334455,  // ground reflection (dark blue)
-        0.3       
-    );
-    scene.add(hemisphereLight);
+    //external models
+    loadExtModels(scene, objects)
 
-    const objects = [];
+    return {objects, door}
+}
 
-    //floor
-    const color = new THREE.Color();
-    let floorGeometry = new THREE.PlaneGeometry(100, 100, 20, 30);
-    floorGeometry.rotateX(-Math.PI / 2);
-
-    const position = floorGeometry.attributes.position;  // Declare position here
-    const colorsFloor = [];
-
-    for (let i = 0, l = position.count; i < l; i++) {
-        color.setHSL(Math.random() * 0.35 + 0.5, 0.55, Math.random() * 0.5 + 0.1, THREE.SRGBColorSpace);
-        colorsFloor.push(color.r, color.g, color.b);
-    }
-
-    floorGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsFloor, 3));
-
-    const floorMaterial = new THREE.MeshStandardMaterial({ 
-        vertexColors: true, 
-        metalness: 0.0,
-        roughness: 0.5,
-    });
-
-    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    scene.add(new THREE.AxesHelper(5));      // X red, Y green, Z blue
-    // scene.add(new THREE.GridHelper(roomSize, roomSize)); // grid on the ground
-
-
-    //sky
-    const skyTex = new THREE.TextureLoader().load('assets/textures/au.jpg');
-    skyTex.colorSpace = THREE.SRGBColorSpace;
-    const skyGeo = new THREE.SphereGeometry(100, 32, 32);
-    const skyMat = new THREE.MeshBasicMaterial({
-        map: skyTex,
-        side: THREE.BackSide,   
-        depthWrite: false,       // sky never occludes anything
-        color: 0x691DAD,    //purple tint
-    });
-
-    const sky = new THREE.Mesh(skyGeo, skyMat);
-    sky.material.toneMapped = false;
-    scene.add(sky);
-
-
-    //walls/boundaries
-
-    //level boundary walls - just for testing
-    const wallMaterial = makeMaterial({
-        visible:false,
-    });
-    const leftWall = Env.makeWall(new THREE.Vector3(-roomSize/2, roomHeight/2, 0), wallThickness, roomHeight, roomSize, wallMaterial);
-    scene.add(leftWall);
-    objects.push(leftWall);
-
-    const rightWall = Env.makeWall(new THREE.Vector3(roomSize/2, roomHeight/2, 0), wallThickness, roomHeight, roomSize, wallMaterial);
-    scene.add(rightWall);
-    objects.push(rightWall);
-
-    const frontWall = Env.makeWall(new THREE.Vector3(0, roomHeight/2, -roomSize/2), wallThickness, roomHeight, roomSize, wallMaterial);
-    frontWall.rotateY( - Math.PI / 2 );
-    scene.add(frontWall);
-    objects.push(frontWall);
-
-    const backWall = Env.makeWall(new THREE.Vector3(0, roomHeight/2, roomSize/2), wallThickness, roomHeight, roomSize, wallMaterial);
-    backWall.rotateY( - Math.PI / 2 );
-    scene.add(backWall);
-    objects.push(backWall);
-
-    addIcicles(scene, objects, 500);
-
-
-    // trees
-    // Create sampler
-    const pds = new PoissonDiskSampling({
-        shape: [treeZone-2, treeZone-2],      
-        minDistance: 4,        
-        maxDistance: 12,        
-        tries: 10,              
-    },
-    seedrandom('level2'),  // for consistent placement
-    );
-
-    // Generate points
-    let points = pds.fill();
-
-    // Place trees
-    let randScale;
-    points.forEach(point => {
-        const treePos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
-        randScale = Math.random() * 0.9 + 0.5;
-        const tree = Env.makeIceTree(treePos, randScale);
-        scene.add(tree);
-        objects.push(tree);
-    });
-
-    //rocks
-    const pdsRocks = new PoissonDiskSampling({
-        shape: [treeZone-5, treeZone-5],      
-        minDistance: 15,        
-        maxDistance: 20,        
-        tries: 10,              
-    },
-    seedrandom('level2-final'),  // for consistent placement
-    );
-
-    // Generate points
-    let rockPoints = pdsRocks.fill();
-
-    // Place trees
-    rockPoints.forEach(point => {
-        const rockPos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
-        randScale = Math.random() * 1 + 0.2;
-        const rock = Env.makeGlowRocks(rockPos, randScale);
-        scene.add(rock);
-        objects.push(rock);
-    });
-
+function loadDoor(scene, objects){
     //door
     const doorMaterial = makeMaterial({
         textureSrc: 'assets/textures/door2/doorcol.jpg',
@@ -196,172 +52,283 @@ export function makeLevel2(){
         metalness: 0.5,
     });
 
-    const door = Env.makeDoor(new THREE.Vector3(roomSize/2-0.2, 0, -5), doorMaterial, frameMaterial, frameMaterial, 1.2, -Math.PI/2)
-    scene.add(door);
-    objects.push(door);
+    const doorGroup = Env.makeDoor(new THREE.Vector3(roomSize/2-0.2, 0, -5), doorMaterial, frameMaterial, frameMaterial, 1.2, -Math.PI/2)
 
-    const doorLight = new THREE.PointLight(0xffffff, 1, 10);
-    doorLight.position.set(roomSize/2-0.2, 2, -5);
-    scene.add(doorLight);
-    //animation
+    objects.push(doorGroup)
+    scene.add(doorGroup)
 
-
-
-
-
-    loadModels(scene, objects);
-
-    //game logic
-
-    return{scene, objects, camera}
+    return doorGroup
 
 }
 
 
+function level2Lighting(scene){
+    //ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15)
+    scene.add(ambientLight)
 
-// export function makeLevel2(camera, renderer){
-//     //set up camera
+    // moonlight - TODO: edit later
+    const dirLight = new THREE.DirectionalLight(0xA8CCFF, 0.4); //blue tint for moonlight
+    dirLight.position.set(0,10,3);
+    dirLight.castShadow = true;
+    dirLight.shadow.camera.left = -roomSize;
+    dirLight.shadow.camera.right = roomSize;
+    dirLight.shadow.camera.top = roomSize;
+    dirLight.shadow.camera.bottom = -roomSize;
+    dirLight.shadow.camera.far = 100;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.bias = -0.001;
+    scene.add(dirLight);
 
-
-
-//     //set up scene
-
-
-
-
-//     //lights
-
-
-
-
-//     //floor
-
-
-
-
-//     //sky
-
-
-
-
-//     //asset loading 
-
-
-
-
-
-
-
-//     //other objects
-
-
-
-
-
-
-//     //animation
-
-
-
-
-
-
-
-//     //game logic
-
-async function loadSounds(listener) {
-    const music = await loadAudio('./assets/audio/music.mp3', listener, {loop:true, volume:0.15, autoplay:true});
-    const wind = await loadAudio('./assets/audio/wind.mp3', listener, {loop:true, volume:1.5, autoplay:true});
-    const floor = await loadAudio('./assets/audio/floor2.mp3', listener, {});
+    // hemisphere light (for aurora effect)
+    const hemisphereLight = new THREE.HemisphereLight(
+        0x7799cc,  
+        0x334455, 
+        0.3       
+    );
+    scene.add(hemisphereLight);
 }
 
-async function loadModels(scene, objects){
-    const candy = await loadObject('./assets/models/key2/CandyCane.obj', './assets/models/key2/CandyCane.mtl', new THREE.Vector3(0,1,5), -Math.PI/2, 0.5)
-    scene.add(candy)
-    objects.push(candy)
+function level2Env(scene, objects){
+    const envObjects =[];
 
-    const snowman = await loadObject('./assets/models/snowman/snowman.obj', './assets/models/snowman/snowman.mtl', new THREE.Vector3(roomSize/2,0,2), -Math.PI/2, 1.3)
-    scene.add(snowman)
-    objects.push(snowman)
+    //floor
+    const color = new THREE.Color();
+    let floorGeometry = new THREE.PlaneGeometry(100, 100, 20, 30);
+    floorGeometry.rotateX(-Math.PI / 2);
 
-    const snowman2 = snowman.clone();
+    const position = floorGeometry.attributes.position;
+    const floorCols = [];
+
+    for (let i = 0, l = position.count; i < l; i++) {
+        color.setHSL(Math.random() * 0.35 + 0.5, 0.55, Math.random() * 0.5 + 0.1, THREE.SRGBColorSpace);
+        floorCols.push(color.r, color.g, color.b);
+    }
+
+    floorGeometry.setAttribute('color', new THREE.Float32BufferAttribute(floorCols, 3));
+
+    const floorMaterial = new THREE.MeshStandardMaterial({ 
+        vertexColors: true, 
+        metalness: 0.0,
+        roughness: 0.5,
+    });
+
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.receiveShadow = true;
+    envObjects.push(floor);
+
+
+    //sky
+    const skyTex = new THREE.TextureLoader().load('assets/textures/au.jpg');
+    skyTex.colorSpace = THREE.SRGBColorSpace;
+    const skyGeo = new THREE.SphereGeometry(100, 32, 32);
+    const skyMat = new THREE.MeshBasicMaterial({
+        map: skyTex,
+        side: THREE.BackSide,   
+        depthWrite: false,      
+        color: 0x691DAD,    //purple tint
+    });
+
+    const sky = new THREE.Mesh(skyGeo, skyMat);
+    sky.material.toneMapped = false;
+    envObjects.push(sky);
+
+
+    //boundaries
+    const wallMaterial = makeMaterial({
+        visible:false,
+    });
+    const leftWall = Env.makeWall(new THREE.Vector3(-roomSize/2, roomHeight/2, 0), wallThickness, roomHeight, roomSize, wallMaterial);
+
+    const rightWall = leftWall.clone()
+    rightWall.position.set(roomSize/2, roomHeight/2, 0)
+
+    const frontWall = leftWall.clone()
+    frontWall.position.set(0, roomHeight/2, -roomSize/2)
+    frontWall.rotateY( - Math.PI / 2 );
+
+    const backWall = leftWall.clone()
+    backWall.position.set(0, roomHeight/2, roomSize/2)
+    backWall.rotateY( - Math.PI / 2 );
+
+    envObjects.push(leftWall);
+    envObjects.push(rightWall);
+    envObjects.push(frontWall);
+    envObjects.push(backWall);
+
+
+    //trees - randomly placed with poisson dist
+    const treePDS = new PoissonDiskSampling({
+        shape: [treeZone-2, treeZone-2],      
+        minDistance: 4,        
+        maxDistance: 12,        
+        tries: 10,              
+    },
+        seedrandom('level2'),  // for consistent placement
+    );
+
+    let treePoints = treePDS.fill();
+
+    let randScale;
+    treePoints.forEach(point => {
+        const treePos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
+        randScale = Math.random() * 0.7 + 0.7;
+        const tree = Env.createTree(treePos, randScale);
+        envObjects.push(tree);
+    });
+
+
+    //rocks - randomly placed with poisson dist
+    const rocksPDS = new PoissonDiskSampling({
+        shape: [treeZone-5, treeZone-5],      
+        minDistance: 15,        
+        maxDistance: 20,        
+        tries: 10,              
+    },
+        seedrandom('level2'),  
+    );
+
+    let rockPoints = rocksPDS.fill();
+
+    rockPoints.forEach(point => {
+        const rockPos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
+        randScale = Math.random() * 0.4 + 0.7;
+        const rock = Env.createRock(rockPos, randScale);
+        envObjects.push(rock);
+    });
+
+    //icicles
+    const icicles = addIcicles(500);
+
+    icicles.forEach(function (icicle) {
+        envObjects.push(icicle)
+    });
+
+    
+    envObjects.forEach(function (object) {
+        scene.add(object);
+        objects.push(object)
+    });
+
+}
+
+async function loadExtModels(scene, objects){
+    const envObjects =[];
+    
+    //snowmen
+    const snowman1 = await loadObject('./assets/models/snowman/snowman.obj', './assets/models/snowman/snowman.mtl', new THREE.Vector3(roomSize/2,0,2), -Math.PI/2, 1.3)
+    
+    const snowman2 = snowman1.clone();
     snowman2.position.set(roomSize/2, 0, -1)
-    scene.add(snowman2)
-    objects.push(snowman2)
 
-    const snowman3 = snowman.clone();
+    const snowman3 = snowman1.clone();
     snowman3.position.set(6, 0, -roomSize/2-1)
     snowman3.rotateY(Math.PI/2)
     snowman3.scale.setScalar(1.5)
-    scene.add(snowman3)
-    objects.push(snowman3)
 
-    const snowman4 = snowman.clone();
+    const snowman4 = snowman1.clone();
     snowman4.position.set(0, 0, roomSize/2+1)
     snowman4.rotateY(-Math.PI/2)
     snowman4.scale.setScalar(1.1)
-    scene.add(snowman4)
-    objects.push(snowman4)
 
-    const snowman5 = snowman.clone();
+    const snowman5 = snowman1.clone();
     snowman5.position.set(-roomSize/4, 0, 5)
     snowman5.rotateY(-Math.PI/6)
     snowman5.scale.setScalar(0.8)
-    scene.add(snowman5)
-    objects.push(snowman5)
-}
 
-function createIcicle(height = 1, radius = 0.1) {
-    const geometry = new THREE.ConeGeometry(radius, height, 6, 1);
-    
-    const color = new THREE.Color();
-    const position = geometry.attributes.position;
-    const colorsIcicle = [];
-    
-    for (let i = 0, l = position.count; i < l; i++) {
-        color.setHSL(Math.random() * 0.45 + 0.5, 0.55, Math.random() * 0.35 + 0.1, THREE.SRGBColorSpace);
-        colorsIcicle.push(color.r, color.g, color.b);
+    envObjects.push(snowman1)
+    envObjects.push(snowman2)
+    envObjects.push(snowman3)
+    envObjects.push(snowman4)
+    envObjects.push(snowman5)
+
+    //candy
+    const candyObjSrc = './assets/models/key2/CandyCane.obj'
+    const candyObjMtl = './assets/models/key2/CandyCane.mtl'
+    const candyY = -0.05
+    const candyPos = [
+        [-4,4],
+        [-3.5,11],
+        [-16,12],
+        [-11,21],
+        [-22,17],
+        [-26,5],
+
+        [-26,-5],
+        [-16,-9],
+        [-15,-15],
+        [-19,-21],
+        [-5.5,-15],
+        [-6, -26.5],
+
+        [8,-8],
+        [18,-2],
+        [26.5,4],
+        [22,-17],
+        [17,-21],
+        [15,-26],
+
+        [7,7],
+        [16,5],
+        [15,15],
+        [3.5,19],
+        [13,24],
+        [24,11],
+        [19,18],
+    ]
+
+    let pos;
+    let rot;
+    let tilt;
+    let scale;
+    for (let i=0; i<candyPos.length; i++){
+        pos = new THREE.Vector3(candyPos[i][0], candyY, candyPos[i][1])
+        rot = Math.PI/(Math.random()*16-8)
+        scale = Math.random()*0.2+0.4
+        tilt = (Math.random() - 0.5) * (Math.PI / 6)
+        const candy = await loadObject(candyObjSrc, candyObjMtl, pos, rot, scale, false)
+        candy.rotateZ(tilt)
+        envObjects.push(candy)
     }
-    
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsIcicle, 3));
-    
-    const material = new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        metalness: 0.2,
-        roughness: 0.3,
-        transparent: false,
-        opacity: 0.98,
-        emissive: 0x88CCFF,
-        emissiveIntensity: 0.08,
+
+    envObjects.forEach(function (object) {
+        scene.add(object);
+        objects.push(object)
     });
-    
-    return new THREE.Mesh(geometry, material);
+
 }
 
-
-function addIcicles(scene, objects, count = 40) {
-    const rng = seedrandom('icicles');
+function addIcicles(count) {
+    const iceRng = seedrandom('icicles')
+    const icicles = []
     
     for (let i = 0; i < count; i++) {
-        const height = 4 + rng() * 15;
-        const radius = 0.5 + rng() * 2.5;
-        const icicle = createIcicle(height, radius);
+        const height = 4 + iceRng() * 15
+        const radius = 0.5 + iceRng() * 2.5
+        const icicle = Env.createIcicle(height, radius)
         
-        // Distribute around the perimeter
-        const angle = rng() * Math.PI * 2;
-        const distance = treeZone/2+5 + rng() * 25;
+        //make icicles around perimeter of scene
+        const angle = iceRng() * Math.PI * 2
+        const distance = (treeZone/2+5) + iceRng() * 25
         
-        icicle.position.set(
-            Math.cos(angle) * distance,
-            height / 2,
-            Math.sin(angle) * distance
-        );
+        icicle.position.set(Math.cos(angle) * distance, height / 2, Math.sin(angle) * distance);
         
         //random tilt
-        icicle.rotation.z = (rng() - 0.5) * 0.2;
-        icicle.rotation.x = (rng() - 0.5) * 0.2;
+        icicle.rotateZ((iceRng() - 0.5) * 0.2)
+        icicle.rotateX((iceRng() - 0.5) * 0.2)
         
-        scene.add(icicle);
-        objects.push(icicle);
+        icicles.push(icicle);
     }
+    return icicles
 }
+
+
+async function loadSounds(){
+    const music = await loadBgAudio('./assets/audio/music.mp3', {loop:true, volume:0.15});
+    const wind = await loadBgAudio('./assets/audio/wind.mp3', {loop:true, volume:1.3});
+    const floor = await loadFloorAudio('./assets/audio/floor2.mp3', {loop:true, volume:1.3});
+    const key = await loadKeyAudio('./assets/audio/keys2.mp3', {volume:1.5});
+    const door = await loadDoorAudio('./assets/audio/door2.wav', {volume:1.3});
+}
+

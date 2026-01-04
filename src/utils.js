@@ -5,16 +5,16 @@ import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 
 THREE.Cache.enabled = true;
 
-// initialise a loader
+//initialise a loader
 const textureLoader = new THREE.TextureLoader();
 
-// create a cache to store loaded textures
+//create a cache to store loaded textures
 const textureCache = new Map();
 
 
 export function makeMaterial(options = {}){
     const{
-        color = null,
+        color = 0xffffff,
         textureSrc = null,
         roughnessSrc = null,
         normalSrc = null,
@@ -28,7 +28,7 @@ export function makeMaterial(options = {}){
     const textureParams = {
         roughness: roughness,
         metalness: metalness,
-        color: color || 0xffffff, // default white if no color
+        color: color,
         visible: visible,
     }
 
@@ -54,14 +54,14 @@ export function makeMaterial(options = {}){
 }
 
 function loadTexture(src, repeat){
-    const key = src + repeat.toString(); // have to store different textures if they are modified
+    const key = src + repeat.toString(); //have to store different textures if they are modified
 
-    // if texture is already in cache, return it
+    //if texture is already in cache, return it
     if(textureCache.has(key)){
         return textureCache.get(key);
     }
 
-    // otherwise load new texture and store
+    //otherwise load new texture and store
     const texture = textureLoader.load(src);
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(repeat[0], repeat[1]);
@@ -81,33 +81,36 @@ export function randomRGB(){
 }
 
 
-// initialise object loader:
+//initialise object loader:
 const objLoader = new OBJLoader();
 const matLoader = new MTLLoader()
 
-export async function loadObject(src, materialsrc, pos, rotation=0, scale=1){
+export async function loadObject(src, materialsrc, pos, rotation=0, scale=1, setCollider=true){
     const material = await matLoader.loadAsync( materialsrc );
     objLoader.setMaterials( material );
 
     const object = await objLoader.loadAsync( src );
 
-    // add inivisible box for collider
-    const box = new THREE.Box3().setFromObject(object);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
+    //(don't add colliders for keys)
+    if(setCollider){
+        //add inivisible box for collider
+        const box = new THREE.Box3().setFromObject(object);
+        const size = new THREE.Vector3();
+        const center = new THREE.Vector3();
+        box.getSize(size);
+        box.getCenter(center);
 
-    const collider = new THREE.Mesh(
-        new THREE.BoxGeometry(size.x, size.y, size.z),
-        makeMaterial({ visible: false })
-    );
+        const collider = new THREE.Mesh(
+            new THREE.BoxGeometry(size.x, size.y, size.z),
+            makeMaterial({ visible: false })
+        );
 
-    collider.position.copy(center);
+        collider.position.copy(center);
 
-    // Attach collider to model (so it moves with it)
-    object.add(collider);
-    collider.position.sub(object.position);
+        //Attach collider to model (so it moves with it)
+        object.add(collider);
+        collider.position.sub(object.position);
+    }
 
     //cast shadows (each mesh)
     object.traverse(function(node){
@@ -127,26 +130,6 @@ export async function loadObject(src, materialsrc, pos, rotation=0, scale=1){
 }
 
 
-//initialise audio loader
-const audioLoader = new THREE.AudioLoader();
 
-export async function loadAudio(src, listener, options={}) {
-    const {
-        loop = false,
-        volume = 0.5,
-        autoplay=false,
-    } = options;
-
-    const audio = new THREE.Audio(listener);
-    const audioBuffer = await audioLoader.loadAsync(src);
-    audio.setBuffer(audioBuffer);
-    audio.setLoop(loop);
-    audio.setVolume(volume);
-
-    if(autoplay){
-        audio.play();
-    }
-    return audio;
-}
 
 

@@ -15,6 +15,7 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     door.position.set(0, 1.25, 0);
     door.castShadow = true;
     door.receiveShadow = true;
+    door.name = 'door'
     doorGroup.add(door);
 
     //doorframe
@@ -29,7 +30,6 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     sideFrameR.position.set(0.85, 1.35, 0);
     doorGroup.add(sideFrameR);
 
-
     const topFrameGeometry = new THREE.BoxGeometry(1.9, 0.2, 0.15);
     const topFrame = new THREE.Mesh(topFrameGeometry, frameMaterial);
     topFrame.position.set(0, 2.6, 0);
@@ -37,21 +37,20 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     topFrame.receiveShadow = true;
     doorGroup.add(topFrame)
 
-
     //doorknob
     const doorknobGeometry = new THREE.SphereGeometry(0.05); 
     const doorKnob = new THREE.Mesh(doorknobGeometry, doorknobMaterial);
     doorKnob.position.set(0.55, 1.2, 0.05);
     doorKnob.castShadow = true;
+    doorKnob.name = 'doorKnob'
     doorGroup.add(doorKnob);
 
     return doorGroup;
 }
 
 
-
-export function makeFloor(y, w, d, material){
-    const floorGeometry = new THREE.PlaneGeometry(w,d);
+export function makeFloor(y, size, material){
+    const floorGeometry = new THREE.PlaneGeometry(size, size);
     floorGeometry.rotateX( - Math.PI / 2 );
 
     const floor = new THREE.Mesh( floorGeometry, material );
@@ -61,8 +60,8 @@ export function makeFloor(y, w, d, material){
 }
 
 
-export function makeWall(pos, w, h, d, material){
-    const wallGeometry = new THREE.BoxGeometry(w, h, d);
+export function makeWall(pos, width, height, depth, material){
+    const wallGeometry = new THREE.BoxGeometry(width, height, depth);
 
     const wall = new THREE.Mesh(wallGeometry, material);
 
@@ -73,17 +72,18 @@ export function makeWall(pos, w, h, d, material){
 }
 
 
-export function makeWallWithDoorway(pos, w, h, d, doorW, doorH, material){
+export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHeight, material){
     const wallGroup = new THREE.Group();
     wallGroup.position.set(pos.x, pos.y, pos.z);
 
-    const leftWallW = (w - doorW) / 2;
+    const leftWallW = (width - doorWidth) / 2;
     const rightWallW = leftWallW;
-    const topWallH = h - doorH;
+    const topWallH = height - doorHeight;
 
-    const leftWall = makeWall(new THREE.Vector3( - (w/2 - leftWallW/2), -(h-doorH)/2, 0), leftWallW, doorH, d, material);
-    const rightWall = makeWall(new THREE.Vector3( w/2 - rightWallW/2, -(h-doorH)/2, 0), rightWallW, doorH, d, material);
-    const topWall = makeWall(new THREE.Vector3(0, h/2 - topWallH/2, 0), w, topWallH, d, material);
+    const leftWall = makeWall(new THREE.Vector3(-(width/2 - leftWallW/2), -(height-doorHeight)/2, 0), leftWallW, doorHeight, depth, material);
+    const rightWall = leftWall.clone()
+    rightWall.position.set(width/2 - rightWallW/2, -(height-doorHeight)/2, 0)
+    const topWall = makeWall(new THREE.Vector3(0, height/2 - topWallH/2, 0), width, topWallH, depth, material);
 
     wallGroup.add(leftWall);
     wallGroup.add(rightWall);
@@ -96,38 +96,55 @@ export function makeWallWithDoorway(pos, w, h, d, doorW, doorH, material){
 }
 
 
-export function makeCrate(pos, w, h, d, material, options = {}){
+// //crate materials (not worth making a new file for)
+// const crateMat1 = makeMaterial({
+//     textureSrc: 'assets/textures/crate1col.jpg',
+//     roughnessSrc: 'assets/textures/crate1rough.jpg',
+//     normalSrc: 'assets/textures/crate1norm.jpg',
+//     roughness: 0.7,
+//     repeat: [1,1],
+//     //todo:remove
+//     // color: 0x689b21,
+// })
+
+const crateMat = makeMaterial({
+    textureSrc: 'assets/textures/crate2col.jpg',
+    roughnessSrc: 'assets/textures/crate2rough.jpg',
+    normalSrc: 'assets/textures/crate2norm.jpg',
+    roughness: 0.7,
+    repeat: [1,1],
+        //todo:remove
+    // color: 0x689b21,
+})
+
+export function makeCrate(pos, width, height, depth, options = {}){
     const{
         lidOverhang = 0.04,
         lidThickness = 0.05,
-        lidMaterial = material,
     } = options;
 
     const crateGroup = new THREE.Group();
     crateGroup.position.set(pos.x, pos.y, pos.z);
 
-    const crateGeometry = new THREE.BoxGeometry(w, h, d);
-    const crate = new THREE.Mesh(crateGeometry, material);
-    crate.position.set(0, h/2 + lidThickness, 0); // crate position relative to group
+    const crateGeometry = new THREE.BoxGeometry(width, height, depth);
+    const crate = new THREE.Mesh(crateGeometry, crateMat);
+    crate.position.set(0, height/2 + lidThickness, 0); 
     crate.castShadow = true;
     crate.receiveShadow = true;
     crateGroup.add(crate);
 
-
-    const lidWidth = w + lidOverhang * 2;
-    const lidDepth = d + lidOverhang * 2;
+    const lidWidth = width + lidOverhang * 2;
+    const lidDepth = depth + lidOverhang * 2;
     const lidGeometry = new THREE.BoxGeometry(lidWidth, lidThickness, lidDepth);
 
-    const lidTop = new THREE.Mesh(lidGeometry, lidMaterial);
-    lidTop.position.set(0, h+lidThickness, 0);
+    const lidTop = new THREE.Mesh(lidGeometry, crateMat);
+    lidTop.position.set(0, height+lidThickness, 0);
     lidTop.castShadow = true;
     lidTop.receiveShadow = true;
     crateGroup.add(lidTop);
 
-    const lidBot = new THREE.Mesh(lidGeometry, lidMaterial);
+    const lidBot = lidTop.clone()
     lidBot.position.set(0, 0, 0);
-    lidBot.castShadow = true;
-    lidBot.receiveShadow = true;
     crateGroup.add(lidBot);
 
     crateGroup.castShadow = true;
@@ -136,43 +153,39 @@ export function makeCrate(pos, w, h, d, material, options = {}){
     return crateGroup;
 }
 
-export function makeBigCrate(pos, material){
-    return makeCrate(pos, 1.5, 1.2, 2.5, material, {
+export function makeBigCrate(pos){
+    return makeCrate(pos, 1.5, 1.2, 2.5, {
         lidOverhang: 0.08,
         lidThickness: 0.1,
     });
 }
 
-export function makeBoxCrate(pos, size, material){
-    return makeCrate(pos, size, size, size, material, {
+export function makeBoxCrate(pos, size){
+    return makeCrate(pos, size, size, size, {
         lidOverhang: 0.05,
         lidThickness: 0.08,
     });
 }
     
-
-export function makeCrateStack(pos, baseSize, materials){
+//TODO: Randomise
+export function makeCrateStack(pos, baseSize){
     const stackGroup = new THREE.Group();
     stackGroup.position.set(pos.x, pos.y, pos.z);
 
     // Base crate
-    let randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const baseCrate = makeBoxCrate(new THREE.Vector3(0, 0, 0), baseSize, randMaterial);
+    const baseCrate = makeBoxCrate(new THREE.Vector3(0, 0, 0), baseSize);
     stackGroup.add(baseCrate);
 
-    // Right crate
-    randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const rightCrate = makeBoxCrate(new THREE.Vector3(baseSize+0.15, 0, 0), baseSize, randMaterial);
+    // Right crate (don't clone so we can still randomise material)
+    const rightCrate = makeBoxCrate(new THREE.Vector3(baseSize+0.15, 0, 0), baseSize);
     stackGroup.add(rightCrate);
 
     // Bottom crate
-    randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const bottomCrate = makeBoxCrate(new THREE.Vector3(0, 0, -baseSize-0.15), baseSize, randMaterial);
+    const bottomCrate = makeBoxCrate(new THREE.Vector3(0, 0, -baseSize-0.15), baseSize);
     stackGroup.add(bottomCrate);
 
     // Top crate
-    randMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const topCrate = makeBoxCrate(new THREE.Vector3(0, baseSize+0.08, 0), baseSize, randMaterial);
+    const topCrate = makeBoxCrate(new THREE.Vector3(0, baseSize+0.08, 0), baseSize);
     stackGroup.add(topCrate);
 
     stackGroup.castShadow = true;
@@ -215,102 +228,18 @@ export function createTorch(x, y, z, rotateY) {
   torchGroup.castShadow = true;
   torchGroup.rotateZ(Math.PI / 5);  //slanted to stick out from wall
   
-  
   return torchGroup;
 }
 
-export function playerTorch(camera) {
-    const torch = new THREE.SpotLight(0xffaa33); 
-    torch.castShadow = true;
-
-    camera.add(torch);
-    torch.position.set(0, 1.7, -0.5);
-
-    return torch
-
-}
-
-
-export function makeStar(pos, pcol, scol, scale=1, rotz=0){
-    const starGroup = new THREE.Group();
-    starGroup.rotateZ(rotz)
-    starGroup.position.set(pos.x, pos.y, pos.z);
-    starGroup.scale.set(scale, scale, scale);
-
-    // Central cube
-    const baseGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const baseMaterial = makeMaterial({color: pcol});
-    baseMaterial.emissive = pcol;
-    baseMaterial.emissiveIntensity = 0.59;
-    const base = new THREE.Mesh(baseGeometry, baseMaterial);
-    starGroup.add(base);
-
-    // Cone for each face (0.45 height cones)
-    const coneGeometry = new THREE.ConeGeometry(0.5, 0.45, 4);  // Height: 0.45
-    const coneMaterial = makeMaterial({color: scol});
-    coneMaterial.emissive = scol;
-    coneMaterial.emissiveIntensity = 0.6;
-    
-    // Top face (+Y)
-    const topCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    topCone.position.set(0, 0.725, 0);  // 0.5 + 0.45/2 = 0.725
-    starGroup.add(topCone);
-    
-    // Bottom face (-Y)
-    const bottomCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    bottomCone.rotation.x = Math.PI;
-    bottomCone.position.set(0, -0.725, 0);
-    starGroup.add(bottomCone);
-    
-    // Front face (+Z)
-    const frontCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    frontCone.rotation.x = Math.PI / 2;
-    frontCone.position.set(0, 0, 0.725);
-    starGroup.add(frontCone);
-    
-    // Back face (-Z)
-    const backCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    backCone.rotation.x = -Math.PI / 2;
-    backCone.position.set(0, 0, -0.725);
-    starGroup.add(backCone);
-    
-    // Right face (+X)
-    const rightCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    rightCone.rotation.z = -Math.PI / 2;
-    rightCone.position.set(0.725, 0, 0);
-    starGroup.add(rightCone);
-    
-    // Left face (-X)
-    const leftCone = new THREE.Mesh(coneGeometry, coneMaterial);
-    leftCone.rotation.z = Math.PI / 2;
-    leftCone.position.set(-0.725, 0, 0);
-    starGroup.add(leftCone);
-
-    //Light
-    const light = new THREE.PointLight(pcol, 1, 10); // orange color, intensity, distance
-    light.position.y = 0;
-    light.castShadow = true;
-    starGroup.add(light);  
-
-
-    return starGroup;
-}
 
 
 // level 2 objects
-export function makeIceTree(pos, scale){
+export function createTree(pos, scale){
     const treeGroup = new THREE.Group();
     treeGroup.position.set(pos.x, pos.y, pos.z);
     treeGroup.scale.set(scale, scale, scale);
 
     const trunkmaterial = makeMaterial({color: 0x452f29});
-    const treeMaterial = makeMaterial({
-        color: 0x5aa1f2,
-        metalness: 0.1,
-        roughness: 0.8,
-    });
-    treeMaterial.envMapIntensity = 2;
-    treeMaterial.needsUpdate = true;
 
     const trunkGeometry = new THREE.CylinderGeometry(0.25, 0.25, 1, 16);
     const trunk = new THREE.Mesh(trunkGeometry, trunkmaterial);
@@ -318,6 +247,12 @@ export function makeIceTree(pos, scale){
     trunk.castShadow = true;
     trunk.receiveShadow = true;
     treeGroup.add(trunk);
+
+    const treeMaterial = makeMaterial({
+        color: 0x5aa1f2,
+        metalness: 0.1,
+        roughness: 0.8,
+    });
 
     const treeGeometry = new THREE.ConeGeometry(1.5, 5, 128);
     const tree = new THREE.Mesh(treeGeometry, treeMaterial);
@@ -329,7 +264,7 @@ export function makeIceTree(pos, scale){
     return treeGroup;
 }
 
-export function makeGlowRocks(pos, scale){
+export function createRock(pos, scale){
     const rockGroup = new THREE.Group();
     rockGroup.position.set(pos.x, pos.y, pos.z);
 
@@ -338,10 +273,8 @@ export function makeGlowRocks(pos, scale){
     const rockMaterial = makeMaterial({color: randCol});
     rockMaterial.emissive = randCol;
     rockMaterial.emissiveIntensity = 0.3;
-    rockMaterial.needsUpdate = true;
     
-
-    const randGeometry = Math.floor(Math.random()*3+1);
+    const randGeometry = Math.floor(Math.random()*3+1.5);
     const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
     const rock = new THREE.Mesh(rockGeometry, rockMaterial);
     rock.position.set(0,0,0);
@@ -355,3 +288,96 @@ export function makeGlowRocks(pos, scale){
     return rockGroup;
 }
 
+export function createIcicle(height = 1, radius = 0.1) {
+    const icicleGeo = new THREE.ConeGeometry(radius, height, 6, 1);
+    
+    const color = new THREE.Color();
+    const position = icicleGeo.attributes.position;
+    const colorsIcicle = [];
+    
+    for (let i = 0, l = position.count; i < l; i++) {
+        color.setHSL(Math.random() * 0.45 + 0.5, 0.55, Math.random() * 0.35 + 0.1, THREE.SRGBColorSpace);
+        colorsIcicle.push(color.r, color.g, color.b);
+    }
+    
+    icicleGeo.setAttribute('color', new THREE.Float32BufferAttribute(colorsIcicle, 3));
+    
+    const icicleMat = new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        metalness: 0.2,
+        roughness: 0.3,
+        transparent: false,
+        opacity: 0.98,
+        emissive: 0x88CCFF,
+        emissiveIntensity: 0.08,
+    });
+
+    const icicle = new THREE.Mesh(icicleGeo, icicleMat);
+    
+    return icicle
+}
+
+// export function makeStar(pos, pcol, scol, scale=1, rotz=0){
+//     const starGroup = new THREE.Group();
+//     starGroup.rotateZ(rotz)
+//     starGroup.position.set(pos.x, pos.y, pos.z);
+//     starGroup.scale.set(scale, scale, scale);
+
+//     // Central cube
+//     const baseGeometry = new THREE.BoxGeometry(1, 1, 1);
+//     const baseMaterial = makeMaterial({color: pcol});
+//     baseMaterial.emissive = pcol;
+//     baseMaterial.emissiveIntensity = 0.59;
+//     const base = new THREE.Mesh(baseGeometry, baseMaterial);
+//     starGroup.add(base);
+
+//     // Cone for each face (0.45 height cones)
+//     const coneGeometry = new THREE.ConeGeometry(0.5, 0.45, 4);  // Height: 0.45
+//     const coneMaterial = makeMaterial({color: scol});
+//     coneMaterial.emissive = scol;
+//     coneMaterial.emissiveIntensity = 0.6;
+    
+//     // Top face (+Y)
+//     const topCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     topCone.position.set(0, 0.725, 0);  // 0.5 + 0.45/2 = 0.725
+//     starGroup.add(topCone);
+    
+//     // Bottom face (-Y)
+//     const bottomCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     bottomCone.rotation.x = Math.PI;
+//     bottomCone.position.set(0, -0.725, 0);
+//     starGroup.add(bottomCone);
+    
+//     // Front face (+Z)
+//     const frontCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     frontCone.rotation.x = Math.PI / 2;
+//     frontCone.position.set(0, 0, 0.725);
+//     starGroup.add(frontCone);
+    
+//     // Back face (-Z)
+//     const backCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     backCone.rotation.x = -Math.PI / 2;
+//     backCone.position.set(0, 0, -0.725);
+//     starGroup.add(backCone);
+    
+//     // Right face (+X)
+//     const rightCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     rightCone.rotation.z = -Math.PI / 2;
+//     rightCone.position.set(0.725, 0, 0);
+//     starGroup.add(rightCone);
+    
+//     // Left face (-X)
+//     const leftCone = new THREE.Mesh(coneGeometry, coneMaterial);
+//     leftCone.rotation.z = Math.PI / 2;
+//     leftCone.position.set(-0.725, 0, 0);
+//     starGroup.add(leftCone);
+
+//     //Light
+//     const light = new THREE.PointLight(pcol, 1, 10); // orange color, intensity, distance
+//     light.position.y = 0;
+//     light.castShadow = true;
+//     starGroup.add(light);  
+
+
+//     return starGroup;
+// }
