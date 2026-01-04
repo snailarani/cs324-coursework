@@ -3,6 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js"
 import { loadLevel1 } from "./level1.js";
 import { loadLevel2 } from "./level2.js";
 import {makeControls, updateControls} from "./controls.js"
+import { gameInit } from "./game.js";
 
 const clock = new THREE.Clock()
 
@@ -39,14 +40,17 @@ function init(){
     const scene = new THREE.Scene();
 
     //add controls
-    const controls = makeControls(camera)
+    const controls = makeControls(camera, scene)
     scene.add(controls.object)
 
     //load level
-    loadLevel2(scene, camera).then(function (objects) {
+    loadLevel2(scene, camera).then(function ({objects, door}) {
         // Once loaded, start
+        gameInit(10, door)
         animate(renderer, scene, camera, controls, objects);
     });
+
+    
 }
 
 init();

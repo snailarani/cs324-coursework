@@ -3,7 +3,6 @@ import seedrandom from 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/+esm';
 import PoissonDiskSampling from 'https://cdn.jsdelivr.net/npm/poisson-disk-sampling@2.3.1/+esm';
 import * as Env from './environment.js';
 import { makeMaterial, loadAudio, loadObject } from './utils.js';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 const roomSize = 55
 const treeZone = 53
@@ -12,6 +11,7 @@ const wallThickness = 0.2
 
 
 export async function loadLevel2(scene, camera){
+
     const objects = []
     const listener = new THREE.AudioListener();
 
@@ -25,19 +25,56 @@ export async function loadLevel2(scene, camera){
     //Environment
     level2Env(scene, objects)
 
+    loadCoins(scene)
+
+    const door = loadDoor(scene, objects)
+
     //sounds
-    loadSounds(listener)
+    // loadSounds(listener)
 
     //external models
-    loadExtModels(scene, objects)
+    // loadExtModels(scene, objects)
 
     //game logic
+
 
 
     //animate
 
 
-    return objects
+    return {objects, door}
+}
+
+async function loadCoins(scene){
+    //candy
+    const candy = await loadObject('./assets/models/key2/CandyCane.obj', './assets/models/key2/CandyCane.mtl', new THREE.Vector3(0,1,0), -Math.PI/2, 0.5, false)
+    candy.userData.collectible = true;
+
+    scene.add(candy)
+}
+
+function loadDoor(scene, objects){
+    //door
+    const doorMaterial = makeMaterial({
+        textureSrc: 'assets/textures/door2/doorcol.jpg',
+        normalSrc: 'assets/textures/door2/doornorm.jpg',
+        roughnessSrc: 'assets/textures/door2/doorrough.jpg',
+        metalness: 0.5,
+    });
+    
+    const frameMaterial = makeMaterial({
+        textureSrc: 'assets/textures/door2/framecol.jpg',
+        normalSrc: 'assets/textures/door2/framenorm.jpg',
+        roughnessSrc: 'assets/textures/door2/framerough.jpg',
+        metalness: 0.5,
+    });
+
+    const doorGroup = Env.makeDoor(new THREE.Vector3(roomSize/2-0.2, 0, -5), doorMaterial, frameMaterial, frameMaterial, 1.2, -Math.PI/2)
+
+    objects.push(doorGroup)
+    scene.add(doorGroup)
+
+    return doorGroup
 
 }
 
@@ -177,26 +214,6 @@ function level2Env(scene, objects){
         const rock = Env.createRock(rockPos, randScale);
         envObjects.push(rock);
     });
-
-
-    //door
-        const doorMaterial = makeMaterial({
-        textureSrc: 'assets/textures/door2/doorcol.jpg',
-        normalSrc: 'assets/textures/door2/doornorm.jpg',
-        roughnessSrc: 'assets/textures/door2/doorrough.jpg',
-        metalness: 0.5,
-    });
-    
-    const frameMaterial = makeMaterial({
-        textureSrc: 'assets/textures/door2/framecol.jpg',
-        normalSrc: 'assets/textures/door2/framenorm.jpg',
-        roughnessSrc: 'assets/textures/door2/framerough.jpg',
-        metalness: 0.5,
-    });
-
-    const door = Env.makeDoor(new THREE.Vector3(roomSize/2-0.2, 0, -5), doorMaterial, frameMaterial, frameMaterial, 1.2, -Math.PI/2)
-    envObjects.push(door);
-
 
     //icicles
     const icicles = addIcicles(500);

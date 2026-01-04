@@ -15,6 +15,7 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     door.position.set(0, 1.25, 0);
     door.castShadow = true;
     door.receiveShadow = true;
+    door.name = 'door'
     doorGroup.add(door);
 
     //doorframe
@@ -29,7 +30,6 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     sideFrameR.position.set(0.85, 1.35, 0);
     doorGroup.add(sideFrameR);
 
-
     const topFrameGeometry = new THREE.BoxGeometry(1.9, 0.2, 0.15);
     const topFrame = new THREE.Mesh(topFrameGeometry, frameMaterial);
     topFrame.position.set(0, 2.6, 0);
@@ -42,6 +42,7 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     const doorKnob = new THREE.Mesh(doorknobGeometry, doorknobMaterial);
     doorKnob.position.set(0.55, 1.2, 0.05);
     doorKnob.castShadow = true;
+    doorKnob.name = 'doorKnob'
     doorGroup.add(doorKnob);
 
     return doorGroup;
@@ -59,8 +60,8 @@ export function makeFloor(y, size, material){
 }
 
 
-export function makeWall(pos, w, h, d, material){
-    const wallGeometry = new THREE.BoxGeometry(w, h, d);
+export function makeWall(pos, width, height, depth, material){
+    const wallGeometry = new THREE.BoxGeometry(width, height, depth);
 
     const wall = new THREE.Mesh(wallGeometry, material);
 
@@ -71,17 +72,18 @@ export function makeWall(pos, w, h, d, material){
 }
 
 
-export function makeWallWithDoorway(pos, w, h, d, doorW, doorH, material){
+export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHeight, material){
     const wallGroup = new THREE.Group();
     wallGroup.position.set(pos.x, pos.y, pos.z);
 
-    const leftWallW = (w - doorW) / 2;
+    const leftWallW = (width - doorWidth) / 2;
     const rightWallW = leftWallW;
-    const topWallH = h - doorH;
+    const topWallH = doorHeight - doorHeight;
 
-    const leftWall = makeWall(new THREE.Vector3( - (w/2 - leftWallW/2), -(h-doorH)/2, 0), leftWallW, doorH, d, material);
-    const rightWall = makeWall(new THREE.Vector3( w/2 - rightWallW/2, -(h-doorH)/2, 0), rightWallW, doorH, d, material);
-    const topWall = makeWall(new THREE.Vector3(0, h/2 - topWallH/2, 0), w, topWallH, d, material);
+    const leftWall = makeWall(new THREE.Vector3(-(width/2 - leftWallW/2), -(height-doorHeight)/2, 0), leftWallW, doorHeight, depth, material);
+    const rightWall = leftWall.clone()
+    rightWall.position.set(width/2 - rightWallW/2, -(height-doorHeight)/2, 0)
+    const topWall = makeWall(new THREE.Vector3(0, height/2 - topWallH/2, 0), width, topWallH, depth, material);
 
     wallGroup.add(leftWall);
     wallGroup.add(rightWall);
@@ -94,38 +96,55 @@ export function makeWallWithDoorway(pos, w, h, d, doorW, doorH, material){
 }
 
 
-export function makeCrate(pos, w, h, d, material, options = {}){
+//crate materials (not worth making a new file for)
+const crateMat1 = makeMaterial({
+    textureSrc: 'assets/textures/crate1col.jpg',
+    roughnessSrc: 'assets/textures/crate1rough.jpg',
+    normalSrc: 'assets/textures/crate1norm.jpg',
+    roughness: 0.7,
+    repeat: [1,1],
+})
+
+const crateMat2 = makeMaterial({
+    textureSrc: 'assets/textures/crate2col.jpg',
+    roughnessSrc: 'assets/textures/crate2rough.jpg',
+    normalSrc: 'assets/textures/crate2norm.jpg',
+    roughness: 0.7,
+    repeat: [1,1],
+})
+
+const crateMats = [crateMat1, crateMat2]
+
+
+export function makeCrate(pos, width, height, depth, material, options = {}){
     const{
         lidOverhang = 0.04,
         lidThickness = 0.05,
-        lidMaterial = material,
     } = options;
 
     const crateGroup = new THREE.Group();
     crateGroup.position.set(pos.x, pos.y, pos.z);
 
-    const crateGeometry = new THREE.BoxGeometry(w, h, d);
-    const crate = new THREE.Mesh(crateGeometry, material);
-    crate.position.set(0, h/2 + lidThickness, 0); // crate position relative to group
+    const crateGeometry = new THREE.BoxGeometry(width, height, depth);
+    const crateMat = crateMats[Math.floor(Math.random()*crateMats.length)] //random material
+    const crate = new THREE.Mesh(crateGeometry, crateMat);
+    crate.position.set(0, height/2 + lidThickness, 0); 
     crate.castShadow = true;
     crate.receiveShadow = true;
     crateGroup.add(crate);
 
-
-    const lidWidth = w + lidOverhang * 2;
-    const lidDepth = d + lidOverhang * 2;
+    const lidWidth = width + lidOverhang * 2;
+    const lidDepth = depth + lidOverhang * 2;
     const lidGeometry = new THREE.BoxGeometry(lidWidth, lidThickness, lidDepth);
 
-    const lidTop = new THREE.Mesh(lidGeometry, lidMaterial);
-    lidTop.position.set(0, h+lidThickness, 0);
+    const lidTop = new THREE.Mesh(lidGeometry, crateMat);
+    lidTop.position.set(0, height+lidThickness, 0);
     lidTop.castShadow = true;
     lidTop.receiveShadow = true;
     crateGroup.add(lidTop);
 
-    const lidBot = new THREE.Mesh(lidGeometry, lidMaterial);
+    const lidBot = lidTop.clone()
     lidBot.position.set(0, 0, 0);
-    lidBot.castShadow = true;
-    lidBot.receiveShadow = true;
     crateGroup.add(lidBot);
 
     crateGroup.castShadow = true;
@@ -158,7 +177,7 @@ export function makeCrateStack(pos, baseSize, materials){
     const baseCrate = makeBoxCrate(new THREE.Vector3(0, 0, 0), baseSize, randMaterial);
     stackGroup.add(baseCrate);
 
-    // Right crate
+    // Right crate (don't clone so we can still randomise material)
     randMaterial = materials[Math.floor(Math.random() * materials.length)];
     const rightCrate = makeBoxCrate(new THREE.Vector3(baseSize+0.15, 0, 0), baseSize, randMaterial);
     stackGroup.add(rightCrate);
@@ -213,7 +232,6 @@ export function createTorch(x, y, z, rotateY) {
   torchGroup.castShadow = true;
   torchGroup.rotateZ(Math.PI / 5);  //slanted to stick out from wall
   
-  
   return torchGroup;
 }
 
@@ -226,13 +244,6 @@ export function createTree(pos, scale){
     treeGroup.scale.set(scale, scale, scale);
 
     const trunkmaterial = makeMaterial({color: 0x452f29});
-    const treeMaterial = makeMaterial({
-        color: 0x5aa1f2,
-        metalness: 0.1,
-        roughness: 0.8,
-    });
-    treeMaterial.envMapIntensity = 2;
-    treeMaterial.needsUpdate = true;
 
     const trunkGeometry = new THREE.CylinderGeometry(0.25, 0.25, 1, 16);
     const trunk = new THREE.Mesh(trunkGeometry, trunkmaterial);
@@ -240,6 +251,12 @@ export function createTree(pos, scale){
     trunk.castShadow = true;
     trunk.receiveShadow = true;
     treeGroup.add(trunk);
+
+    const treeMaterial = makeMaterial({
+        color: 0x5aa1f2,
+        metalness: 0.1,
+        roughness: 0.8,
+    });
 
     const treeGeometry = new THREE.ConeGeometry(1.5, 5, 128);
     const tree = new THREE.Mesh(treeGeometry, treeMaterial);
@@ -260,10 +277,8 @@ export function createRock(pos, scale){
     const rockMaterial = makeMaterial({color: randCol});
     rockMaterial.emissive = randCol;
     rockMaterial.emissiveIntensity = 0.3;
-    rockMaterial.needsUpdate = true;
     
-
-    const randGeometry = Math.floor(Math.random()*3+1);
+    const randGeometry = Math.floor(Math.random()*3+1.5);
     const rockGeometry = new THREE.TetrahedronGeometry(scale, randGeometry);
     const rock = new THREE.Mesh(rockGeometry, rockMaterial);
     rock.position.set(0,0,0);
@@ -369,15 +384,4 @@ export function createIcicle(height = 1, radius = 0.1) {
 
 
 //     return starGroup;
-// }
-
-// export function playerTorch(camera) {
-//     const torch = new THREE.SpotLight(0xffaa33); 
-//     torch.castShadow = true;
-
-//     camera.add(torch);
-//     torch.position.set(0, 1.7, -0.5);
-
-//     return torch
-
 // }
