@@ -72,12 +72,14 @@ export function pauseBgAudio() {
 
 export function playWalkAudio() {
     if (!walkAudio.isPlaying){
+        console.log("playing audio")
         walkAudio.play();
     }
 }
 
 export function stopWalkAudio() {
     if (walkAudio.isPlaying){
+        console.log("stopped audio")
         walkAudio.stop();
     }
 }

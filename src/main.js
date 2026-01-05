@@ -9,16 +9,38 @@ const clock = new THREE.Clock()
 
 var currentLevel=1
 
-function animate(renderer, scene, camera, objects, controls, currentLevel, sky) {
+function animate(renderer, scene, camera, objects, controls, currentLevel, door, sky) {
+    let animationId
+    let hitDoor
     function loop() {
-        requestAnimationFrame(loop);
-        updateControls(clock.getDelta(), controls, objects, camera, currentLevel) //0 for level 2
+        animationId = requestAnimationFrame(loop);
+        hitDoor = updateControls(clock.getDelta(), controls, objects, camera, currentLevel, door) //0 for level 2
         renderer.render(scene, camera);
         if(sky!=null){
             sky.position.copy(camera.position)
         }
+        if (hitDoor) {
+            // Player walked into the active door - transition to next level
+            cancelAnimationFrame(animationId);
+            transitionToNextLevel(renderer, scene, camera);
+            return;
+        }
     }
     loop();
+}
+
+
+function transitionToNextLevel(renderer, scene, camera) {
+    // Clear the current scene
+    while(scene.children.length > 0) { 
+        scene.remove(scene.children[0]); 
+    }
+    
+    // Increment level
+    currentLevel++;
+    
+    // Load next level
+    main(renderer, scene, camera);
 }
 
 
@@ -65,7 +87,7 @@ function main(){
 
         gameInit(10, door, currentLevel)
 
-        animate(renderer, scene, camera, objects, controls, currentLevel);
+        animate(renderer, scene, camera, objects, controls, currentLevel, door);
     });
 }
 

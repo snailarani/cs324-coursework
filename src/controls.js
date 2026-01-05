@@ -1,7 +1,8 @@
 import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js";
 import { PointerLockControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/PointerLockControls.js";
-import { collectKey } from "./game.js"
+import { collectKey, isLevelComplete } from "./game.js"
 import { playBgAudio, pauseBgAudio, playWalkAudio, stopWalkAudio, playCoinAudio } from "./sounds.js";
+
 
 //TODO: add bobbing up and down when walking (don't shift the camera up/down, you'll drift, use sine wave from set base height (camera height))
 //TODO: fix animation stuff (moving pointer lock, improve collision stuff)
@@ -96,11 +97,13 @@ export function makeControls(camera, scene, currentLevel){
                 moveRight = false;
                 break;
         }
+
+        if (!moveForward && !moveBackward && !moveLeft && !moveRight) {
+            stopWalkAudio();
+    }
     }
         
-    if (!moveForward && !moveBackward && !moveLeft && !moveRight) {
-        stopWalkAudio();
-    }
+
 
     document.addEventListener('keydown', onKeyDown);
 	document.addEventListener('keyup', onKeyUp);
@@ -108,7 +111,6 @@ export function makeControls(camera, scene, currentLevel){
     //add controls to pick up coins
     document.addEventListener('click', function(){
         pickUpCoin(controls, camera, scene, currentLevel)
-        //play coin audio
     })
 
     return controls
@@ -153,8 +155,8 @@ function pickUpCoin(controls, camera, scene, currentLevel){
 }
 
 
-
-export function updateControls(delta, controls, objects, camera, currentLevel){
+// handling movement
+export function updateControls(delta, controls, objects, camera, currentLevel, door){
 
     const speed = (currentLevel==1) ? 12 : 15;
     const ray_offset = (currentLevel==1) ? 1 : 0;
@@ -179,6 +181,7 @@ export function updateControls(delta, controls, objects, camera, currentLevel){
     if ( moveForward || moveBackward ) velocity.z -= direction.z * speed * delta;
     if ( moveLeft || moveRight ) velocity.x -= direction.x * speed * delta;
 
+
     //Handling collisions
 
     //Get camera direction first
@@ -191,13 +194,27 @@ export function updateControls(delta, controls, objects, camera, currentLevel){
     //Forward/Backwards
     let blockedForward = false;
 
+    let intersectionsZ
+    let intersectionsX
+
     //Only raycast forward/backward if moving forward/backward
     if (velocity.z != 0) {
         const dirZ = horizontalForward.clone().multiplyScalar(-Math.sign(velocity.z)); //right or left
         ray_forward.ray.origin.copy(playerPos);
         ray_forward.ray.origin.y -= ray_offset; //ray from chest position
         ray_forward.ray.direction.copy(dirZ);
-        blockedForward = ray_forward.intersectObjects(objects, true).length > 0;
+        intersectionsZ = ray_forward.intersectObjects(objects, true);
+        blockedForward = intersectionsZ.length > 0;
+
+        if(isLevelComplete()){
+            const intersectionZ = intersectionsZ[0]
+            if (intersectionZ!=null){
+                const object = intersectionZ.object
+                if (object.name=="door"|| object.name=="doorKnob"){
+                    return true;
+                }
+            }
+        }
     }
 
     //Right/Left
@@ -209,9 +226,39 @@ export function updateControls(delta, controls, objects, camera, currentLevel){
         ray_right.ray.origin.copy(playerPos);
         ray_right.ray.origin.y -= ray_offset; //ray from chest position
         ray_right.ray.direction.copy(dirX);
-        const intersections = ray_right.intersectObjects(objects, true);
-        blockedRight = intersections.length > 0;
+        intersectionsX = ray_right.intersectObjects(objects, true);
+        blockedRight = intersectionsX.length > 0;
+
+        if(isLevelComplete()){
+            const intersectionX = intersectionsX[0]
+            if (intersectionX!=null){
+                const object = intersectionX.object
+                if (object.name=="door"|| object.name=="doorKnob"){
+                    return true;
+                }
+            }
+        }
     } 
+
+    // //check for door
+    // if(isLevelComplete()){
+    //     const intersectionZ = intersectionsZ[0]
+    //     const intersectionX = intersectionsX[0]
+    //     if (intersectionZ!=null){
+    //         const object = intersectionZ.object
+    //         if (object.name=="door"|| object.name=="doorKnob"){
+    //             return true;
+    //         }
+    //     }
+    //     if (intersectionX!=null){
+    //         const object = intersectionX.object
+    //         if (object.name=="door"|| object.name=="doorKnob"){
+    //             return true;
+    //         }
+    //     }
+    // }
+
+
 
     //Move if no collisions
     if (!blockedForward) {
@@ -227,4 +274,11 @@ export function updateControls(delta, controls, objects, camera, currentLevel){
     else{
         velocity.x = 0;
     }
+    return false
+}
+
+
+function checkDoorCollision(playerPos, doorGroup){
+    const door = doorGroup.getObjectByName('door')
+
 }

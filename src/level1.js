@@ -7,7 +7,6 @@ const roomSize = 18;
 const roomHeight = 4;
 const wallThickness = 0.2;
 
-//TODO: just have 1 texture for all crates
 export async function loadLevel1(scene, camera){
     const objects = [];
 

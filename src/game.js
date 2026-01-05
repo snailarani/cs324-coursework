@@ -2,11 +2,13 @@ import { playDoorAudio } from "./sounds.js";
 let numKeys;
 let counter;
 let door;
+let levelcomplete = false;
 
 export function gameInit(n, d, currentLevel){
-    //initalise counters
-    numKeys = (currentLevel==1) ? 12 : 25
+    //initalise variables
+    numKeys = (currentLevel==1) ? 1 : 25
     counter = 0
+    levelcomplete = false
 
     //define door
     door = d
@@ -47,7 +49,13 @@ export function levelComplete(doorGroup){
     door.material.emissive.set(0xffffff)
     door.material.emissiveIntensity = 0.8
     knob.visible = false
+    levelcomplete = true
     playDoorAudio()
+}
+
+
+export function isLevelComplete(){
+    return levelcomplete;
 }
 
 

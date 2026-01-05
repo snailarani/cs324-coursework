@@ -120,7 +120,6 @@ export async function loadObject(src, materialsrc, pos, rotation=0, scale=1, set
         }
     });
 
-
     //position object
     object.rotateY(rotation)
     object.position.copy(pos)
