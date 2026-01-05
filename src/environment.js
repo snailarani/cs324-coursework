@@ -1,5 +1,4 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
-// import PoissonDiskSampling from 'poisson-disk-sampling';
 import { makeMaterial, randomRGB } from './utils.js';
 
 

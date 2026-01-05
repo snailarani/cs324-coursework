@@ -6,7 +6,7 @@ let levelcomplete = false;
 
 export function gameInit(d, currentLevel){
     //initalise variables
-    numKeys = (currentLevel==1) ? 1 : 1
+    numKeys = (currentLevel==1) ? 12 : 25
     counter = 0
     levelcomplete = false
 
