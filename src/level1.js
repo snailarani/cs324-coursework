@@ -169,7 +169,6 @@ function level1Env(scene, objects){
     envObjects.push(doorway5);
 
 
-
     //center pole
     const poleGeometry = new THREE.CylinderGeometry(1, 1, roomHeight, 16);
     const pole = new THREE.Mesh(poleGeometry, wallMaterial);
@@ -180,7 +179,6 @@ function level1Env(scene, objects){
 
 
     //crates
-
     //crate stacks
     const crateStack1 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+1,0,roomSize/2-1), 1.3);
     const crateStack2 = Env.makeCrateStack(new THREE.Vector3(-roomSize/2+2,0,0), 1);
@@ -311,7 +309,6 @@ async function loadSounds() {
     const door = await loadKeyAudio('./assets/audio/keys1.wav', {volume:1.5});
     const keys = await loadDoorAudio('./assets/audio/door1.wav', {volume:1.3});
 }
-
 
 //TODO: add particles to flames
 

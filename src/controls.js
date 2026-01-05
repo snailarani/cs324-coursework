@@ -27,9 +27,6 @@ export function makeControls(camera, scene, currentLevel){
     //Making pointer controls
     const controls = new PointerLockControls( camera, document.body );
 
-    //store locked mouse position
-    let lockedRotation = { x: 0, y: 0 };
-
     //locks cursor on click
     document.addEventListener('click', function () {
         controls.lock();
@@ -159,7 +156,7 @@ function pickUpCoin(controls, camera, scene, currentLevel){
 export function updateControls(delta, controls, objects, camera, currentLevel, door){
 
     const speed = (currentLevel==1) ? 12 : 15;
-    const ray_offset = (currentLevel==1) ? 1 : 0;
+    const ray_offset = (currentLevel==1) ? 1 : 0.3;
 
     if (!controls.isLocked) {
         // Reset velocity when not locked

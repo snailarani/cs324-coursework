@@ -69,6 +69,14 @@ export function pauseBgAudio() {
     });
 }
 
+export function stopBgAudio() {
+    bgAudio.forEach(function (audio) {
+        if (audio.isPlaying){
+            audio.stop();
+        }
+    });
+}
+
 
 export function playWalkAudio() {
     if (!walkAudio.isPlaying){
