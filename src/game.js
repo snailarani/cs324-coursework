@@ -2,21 +2,30 @@ import { playDoorAudio } from "./sounds.js";
 let numKeys;
 let counter;
 let door;
+let levelcomplete = false;
 
-export function gameInit(n, d, currentLevel){
-    //initalise counters
+export function gameInit(d, currentLevel){
+    //initalise variables
     numKeys = (currentLevel==1) ? 12 : 25
     counter = 0
+    levelcomplete = false
 
     //define door
     door = d
+
+    //reset ui to default styles
+    document.getElementById('top-box').style.width = ''
+    document.getElementById('key-counter').style.fontSize = ''
+    document.getElementById('key-img').style.display = ''
 
     //update overlay counter
     if (currentLevel==1){
         document.getElementById('key-img').innerHTML = `<img src="./assets/coin.png" width = 40>`
     }
     else{
+        console.log("loading candy cane")
         document.getElementById('key-img').innerHTML = `<img src="./assets/candycane.png" width = 40>`
+        console.log("Candy cane HTML set:", document.getElementById('key-img').innerHTML)
     }
     document.getElementById('key-counter').textContent = `${counter}/${numKeys}`;
 }
@@ -47,7 +56,13 @@ export function levelComplete(doorGroup){
     door.material.emissive.set(0xffffff)
     door.material.emissiveIntensity = 0.8
     knob.visible = false
+    levelcomplete = true
     playDoorAudio()
+}
+
+
+export function isLevelComplete(){
+    return levelcomplete;
 }
 
 

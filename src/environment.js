@@ -1,5 +1,4 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
-// import PoissonDiskSampling from 'poisson-disk-sampling';
 import { makeMaterial, randomRGB } from './utils.js';
 
 
@@ -96,25 +95,12 @@ export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHe
 }
 
 
-// //crate materials (not worth making a new file for)
-// const crateMat1 = makeMaterial({
-//     textureSrc: 'assets/textures/crate1col.jpg',
-//     roughnessSrc: 'assets/textures/crate1rough.jpg',
-//     normalSrc: 'assets/textures/crate1norm.jpg',
-//     roughness: 0.7,
-//     repeat: [1,1],
-//     //todo:remove
-//     // color: 0x689b21,
-// })
-
 const crateMat = makeMaterial({
     textureSrc: 'assets/textures/crate2col.jpg',
     roughnessSrc: 'assets/textures/crate2rough.jpg',
     normalSrc: 'assets/textures/crate2norm.jpg',
     roughness: 0.7,
     repeat: [1,1],
-        //todo:remove
-    // color: 0x689b21,
 })
 
 export function makeCrate(pos, width, height, depth, options = {}){
@@ -316,68 +302,3 @@ export function createIcicle(height = 1, radius = 0.1) {
     
     return icicle
 }
-
-// export function makeStar(pos, pcol, scol, scale=1, rotz=0){
-//     const starGroup = new THREE.Group();
-//     starGroup.rotateZ(rotz)
-//     starGroup.position.set(pos.x, pos.y, pos.z);
-//     starGroup.scale.set(scale, scale, scale);
-
-//     // Central cube
-//     const baseGeometry = new THREE.BoxGeometry(1, 1, 1);
-//     const baseMaterial = makeMaterial({color: pcol});
-//     baseMaterial.emissive = pcol;
-//     baseMaterial.emissiveIntensity = 0.59;
-//     const base = new THREE.Mesh(baseGeometry, baseMaterial);
-//     starGroup.add(base);
-
-//     // Cone for each face (0.45 height cones)
-//     const coneGeometry = new THREE.ConeGeometry(0.5, 0.45, 4);  // Height: 0.45
-//     const coneMaterial = makeMaterial({color: scol});
-//     coneMaterial.emissive = scol;
-//     coneMaterial.emissiveIntensity = 0.6;
-    
-//     // Top face (+Y)
-//     const topCone = new THREE.Mesh(coneGeometry, coneMaterial);
-//     topCone.position.set(0, 0.725, 0);  // 0.5 + 0.45/2 = 0.725
-//     starGroup.add(topCone);
-    
-//     // Bottom face (-Y)
-//     const bottomCone = new THREE.Mesh(coneGeometry, coneMaterial);
-//     bottomCone.rotation.x = Math.PI;
-//     bottomCone.position.set(0, -0.725, 0);
-//     starGroup.add(bottomCone);
-    
-//     // Front face (+Z)
-//     const frontCone = new THREE.Mesh(coneGeometry, coneMaterial);
-//     frontCone.rotation.x = Math.PI / 2;
-//     frontCone.position.set(0, 0, 0.725);
-//     starGroup.add(frontCone);
-    
-//     // Back face (-Z)
-//     const backCone = new THREE.Mesh(coneGeometry, coneMaterial);
-//     backCone.rotation.x = -Math.PI / 2;
-//     backCone.position.set(0, 0, -0.725);
-//     starGroup.add(backCone);
-    
-//     // Right face (+X)
-//     const rightCone = new THREE.Mesh(coneGeometry, coneMaterial);
-//     rightCone.rotation.z = -Math.PI / 2;
-//     rightCone.position.set(0.725, 0, 0);
-//     starGroup.add(rightCone);
-    
-//     // Left face (-X)
-//     const leftCone = new THREE.Mesh(coneGeometry, coneMaterial);
-//     leftCone.rotation.z = Math.PI / 2;
-//     leftCone.position.set(-0.725, 0, 0);
-//     starGroup.add(leftCone);
-
-//     //Light
-//     const light = new THREE.PointLight(pcol, 1, 10); // orange color, intensity, distance
-//     light.position.y = 0;
-//     light.castShadow = true;
-//     starGroup.add(light);  
-
-
-//     return starGroup;
-// }
