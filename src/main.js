@@ -1,19 +1,19 @@
 import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js"
-
 import { loadLevel1 } from "./level1.js";
 import { loadLevel2 } from "./level2.js";
 import {makeControls, updatePosition, checkDoorCollision, removeControls} from "./controls.js"
-import { gameInit, isLevelComplete } from "./game.js";
+import { gameInit, isLevelComplete } from "./gameLogic.js";
 import { stopWalkAudio, stopBgAudio } from "./sounds.js";
 
 const clock = new THREE.Clock()
+var currentLevel = 1
+let gameComplete = false;
+
+//Initialise renderer
 const renderer = new THREE.WebGLRenderer();
 renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
-var currentLevel = 1
-let gameComplete = false;
 
 //Initialise camera:
 const camera = new THREE.PerspectiveCamera(
@@ -29,21 +29,23 @@ const scene = new THREE.Scene();
 main(renderer, scene, camera, currentLevel)
 
 
-
-function animate(renderer, scene, camera, objects, controls, currentLevel, door) {
+function animate(renderer, scene, camera, objects, controls, currentLevel) {
     let animationId
     let hitDoor = false
+
     function loop() {
         animationId = requestAnimationFrame(loop);
-        updatePosition(clock.getDelta(), controls, objects, camera, currentLevel, door) //0 for level 2
+        updatePosition(clock.getDelta(), controls, objects, camera, currentLevel) //0 for level 2
 
-        if(isLevelComplete()){
+        const levelComplete = isLevelComplete()
+
+        if(levelComplete){
             hitDoor = checkDoorCollision()
         }
 
         renderer.render(scene, camera);
 
-        if (hitDoor) {
+        if (levelComplete && hitDoor) {
             // Player walked into the active door - transition to next level
             cancelAnimationFrame(animationId);
             levelTransition(renderer, scene, camera, controls);
@@ -52,6 +54,7 @@ function animate(renderer, scene, camera, objects, controls, currentLevel, door)
     }
     loop();
 }
+
 
 function levelTransition(renderer, scene, camera, controls){
 
@@ -80,7 +83,6 @@ function clearScene(scene){
     //clear scene
     while(scene.children.length > 0) { 
         scene.remove(scene.children[0]); 
-        console.log("Cleared Scene")
     }
 }
 
@@ -88,7 +90,6 @@ function clearCamera(camera){
     //clear camera
     while(camera.children.length > 0) { 
         camera.remove(camera.children[0]); 
-        console.log("Cleared camera")
     }
 }
 
@@ -113,17 +114,18 @@ function main(renderer, scene, camera, currentLevel){
         }
 
         // Once loaded, add controls and begin
-        // add controls
         const controls = makeControls(camera, scene, currentLevel)
         scene.add(controls.object)
 
+        // automatically unlock controls for level 2
         if (currentLevel==2){
             controls.lock()
         }
 
+        // initialise game logic (counters)
         gameInit(door, currentLevel)
 
-        animate(renderer, scene, camera, objects, controls, currentLevel, door);
+        animate(renderer, scene, camera, objects, controls, currentLevel);
     });
 }
 

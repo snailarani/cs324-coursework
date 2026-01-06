@@ -54,7 +54,6 @@ function level1Lighting(scene, camera){
 
     camera.add(torchTarget);
     torch.target = torchTarget;
-
 }
 
 function loadDoor(scene, objects){

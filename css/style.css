@@ -116,6 +116,7 @@ body {
     border: 1px solid rgb(215, 215, 215);;
     border-radius: 50%;
     pointer-events: none;
+    /*TODO - do i need this??*/
     z-index: 9999;
     box-shadow: 0 0 0 1px black;
 }

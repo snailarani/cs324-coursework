@@ -23,15 +23,16 @@ export function gameInit(d, currentLevel){
         document.getElementById('key-img').innerHTML = `<img src="./assets/coin.png" width = 40>`
     }
     else{
-        console.log("loading candy cane")
         document.getElementById('key-img').innerHTML = `<img src="./assets/candycane.png" width = 40>`
-        console.log("Candy cane HTML set:", document.getElementById('key-img').innerHTML)
     }
     document.getElementById('key-counter').textContent = `${counter}/${numKeys}`;
 }
 
 
-export function collectKey(){
+export function collectKey(scene, object){
+    //remove key from screen
+    scene.remove(object.parent)
+
     counter++
 
     //update overlay counter
@@ -39,17 +40,17 @@ export function collectKey(){
 
     //update ui and complete level if all keys are collected
     if(counter == numKeys){
+        levelcomplete = true
         document.getElementById('top-box').style.width = `500px`
         document.getElementById('key-counter').style.fontSize = `20px`
         document.getElementById('key-img').style.display = `none`
         document.getElementById('key-counter').textContent = `You collected all keys! Find the door and escape!`;
-        levelComplete(door)
+        updateDoor(door)
     }
 }
 
 
-//TODO; maybe add light to door
-export function levelComplete(doorGroup){
+export function updateDoor(doorGroup){
     const door = doorGroup.getObjectByName('door')
     const knob = doorGroup.getObjectByName('doorKnob')
     door.material.color.set(0xffffff)

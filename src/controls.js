@@ -1,6 +1,6 @@
 import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js";
 import { PointerLockControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/PointerLockControls.js";
-import { collectKey } from "./game.js"
+import { collectKey } from "./gameLogic.js"
 import { isGameComplete } from "./main.js";
 import { playBgAudio, pauseBgAudio, playWalkAudio, stopWalkAudio, playCoinAudio } from "./sounds.js";
 
@@ -64,7 +64,7 @@ function makePointerLock(camera){
     //when unlocked, show menu and stop sounds
     pointerLock.addEventListener( 'unlock', function () {
 
-        if (!isGameComplete) {
+        if (!isGameComplete()) {
             overlay.style.display = 'none';
             blocker.style.display = 'flex';
             instructions.style.display = 'flex';
@@ -73,9 +73,7 @@ function makePointerLock(camera){
             blocker.style.display = 'none';
             instructions.style.display = 'none';
         }
-        // overlay.style.display = 'none';
-        // blocker.style.display = 'flex';  
-        // instructions.style.display = 'flex'; 
+
         pauseBgAudio();
         stopWalkAudio();
     } );
@@ -176,9 +174,8 @@ function pickUpCoin(controls, camera, scene, currentLevel){
     if (intersection!=null){
         const object = intersection.object
         if (object.name==keyName){
-            scene.remove(object.parent)
             playCoinAudio()
-            collectKey()
+            collectKey(scene, object)
         }
     }
 }
@@ -193,14 +190,21 @@ let intersectionsZ = []
 let intersectionsX = []
 
 let playerRadius = 0.5
+
 let rayZ = new THREE.Raycaster();
 rayZ.near = 0
 rayZ.far = playerRadius
+
 let rayX = new THREE.Raycaster();
 rayX.near = 0
 rayX.far = playerRadius
 
-export function updatePosition(delta, controls, objects, camera, currentLevel, door){
+export function updatePosition(delta, controls, objects, camera, currentLevel){
+
+    //ignore large deltas
+    if (delta > 0.05) {
+        return;
+    }
 
     //TODO - initialise these somewhere else (once at beginning of each level)
     //set speed
