@@ -1,4 +1,4 @@
-import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
+import * as THREE from 'three' //'https://unpkg.com/three@0.170.0/build/three.module.js';
 import * as Env from './environment.js';
 import { loadObject, makeMaterial } from './utils.js';
 import { initAudio, loadBgAudio, loadFloorAudio, loadKeyAudio, loadDoorAudio } from './sounds.js';

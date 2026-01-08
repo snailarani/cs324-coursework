@@ -1,4 +1,4 @@
-import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js"
+import * as THREE from 'three'
 import { loadLevel1 } from "./level1.js";
 import { loadLevel2 } from "./level2.js";
 import {makeControls, updatePosition, checkDoorCollision, removeControls} from "./controls.js"

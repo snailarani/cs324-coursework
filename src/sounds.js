@@ -1,4 +1,4 @@
-import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js"
+import * as THREE from 'three'
 //initialise audio loader
 const audioLoader = new THREE.AudioLoader();
 

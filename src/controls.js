@@ -1,5 +1,5 @@
-import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js";
-import { PointerLockControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/PointerLockControls.js";
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
 import { collectKey } from "./gameLogic.js"
 import { isGameComplete } from "./main.js";
 import { playBgAudio, pauseBgAudio, playWalkAudio, stopWalkAudio, playKeyAudio } from "./sounds.js";
@@ -158,7 +158,7 @@ function makeKeyBinds(controls){
 
 
 const clickRay = new THREE.Raycaster();
-const maxClickDist = 10;
+const maxClickDist = 2.5;
 
 /*
     defines click action to pick up key object
