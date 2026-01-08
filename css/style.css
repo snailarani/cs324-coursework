@@ -12,6 +12,7 @@ body {
     overflow: hidden;
 }
 
+/* occupies full page */
 #blocker {
     position: absolute;
     width: 100%;
@@ -115,9 +116,8 @@ body {
     background: rgb(215, 215, 215);
     border: 1px solid rgb(215, 215, 215);;
     border-radius: 50%;
-    pointer-events: none;
-    /*TODO - do i need this??*/
-    z-index: 9999;
+    pointer-events: none;   /* ensures crosshair does not interfere with click actions */
+    z-index: 9999;      /* ensures crosshair stays on top of other elements */
     box-shadow: 0 0 0 1px black;
 }
 

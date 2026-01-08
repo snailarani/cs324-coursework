@@ -126,7 +126,7 @@ export function stopWalkAudio() {
 /*  
     Plays pick up coin audio track
 */
-export function playCoinAudio() {
+export function playKeyAudio() {
     if (coinAudio) {
         coinAudio.stop();
         coinAudio.play();

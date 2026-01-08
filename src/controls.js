@@ -2,13 +2,12 @@ import * as THREE from "https://unpkg.com/three@0.170.0/build/three.module.js";
 import { PointerLockControls } from "https://unpkg.com/three@0.170.0/examples/jsm/controls/PointerLockControls.js";
 import { collectKey } from "./gameLogic.js"
 import { isGameComplete } from "./main.js";
-import { playBgAudio, pauseBgAudio, playWalkAudio, stopWalkAudio, playCoinAudio } from "./sounds.js";
+import { playBgAudio, pauseBgAudio, playWalkAudio, stopWalkAudio, playKeyAudio } from "./sounds.js";
 
 let onClickLock
 let onKeyDown
 let onKeyUp
 let onClickPickUp
-
 
 /*
     makes all user controls and adds them to the canvas
@@ -191,7 +190,7 @@ function pickUpKey(controls, camera, scene, currentLevel){
     if (intersection!=null){
         const object = intersection.object
         if (object.name==keyName){
-            playCoinAudio()
+            playKeyAudio()
             collectKey(scene, object)
         }
     }
@@ -319,16 +318,23 @@ export function updatePosition(delta, controls, objects, camera, currentLevel){
     }
 }
 
-
+/*
+    checks if player collides with door
+*/
 export function checkDoorCollision(){
+    //get the first object intersected by the ray
+
+    //checking z movement
     const intersectionZ = intersectionsZ[0]
     if (intersectionZ!=null){
         const object = intersectionZ.object
+        //if the object is the door, return true
         if (object.name=="door"|| object.name=="doorKnob"){
             return true
         }
     }
 
+    //checking x movement
     const intersectionX = intersectionsX[0]
     if (intersectionX!=null){
         const object = intersectionX.object
