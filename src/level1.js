@@ -274,7 +274,7 @@ async function loadExtModels(scene, objects){
 
     const chest4 = chest2.clone()
     chest4.position.set(roomSize/3+1.5,0,-roomSize/2+2)
-    chest4.scale.setScalar(0.8)
+    chest4.scale.setScalar(0.75)
 
     envObjects.push(chest1)
     envObjects.push(chest2)
