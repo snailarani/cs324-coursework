@@ -6,16 +6,18 @@ import { gameInit, isLevelComplete } from "./gameLogic.js";
 import { stopWalkAudio, stopBgAudio } from "./sounds.js";
 
 const clock = new THREE.Clock()
+
+//initialise game variables
 var currentLevel = 1
 let gameComplete = false;
 
-//Initialise renderer
+//initialise renderer
 const renderer = new THREE.WebGLRenderer();
 renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-//Initialise camera:
+//initialise camera:
 const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -23,77 +25,16 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-//Initialise scene
+//initialise scene
 const scene = new THREE.Scene();
 
 main(renderer, scene, camera, currentLevel)
 
 
-function animate(renderer, scene, camera, objects, controls, currentLevel) {
-    let animationId
-    let hitDoor = false
-
-    function loop() {
-        animationId = requestAnimationFrame(loop);
-        updatePosition(clock.getDelta(), controls, objects, camera, currentLevel) //0 for level 2
-
-        const levelComplete = isLevelComplete()
-
-        if(levelComplete){
-            hitDoor = checkDoorCollision()
-        }
-
-        renderer.render(scene, camera);
-
-        if (levelComplete && hitDoor) {
-            // Player walked into the active door - transition to next level
-            cancelAnimationFrame(animationId);
-            levelTransition(renderer, scene, camera, controls);
-            return;
-        }
-    }
-    loop();
-}
-
-
-function levelTransition(renderer, scene, camera, controls){
-
-    removeControls(controls)
-
-    clearScene(scene)
-    clearCamera(camera)
-
-    //stop sounds
-    stopWalkAudio()
-    stopBgAudio()
-
-    //increment level
-    currentLevel++
-
-    if (currentLevel > 2){
-        completeGame(controls)
-        return
-    }
-
-    //load next level
-    main(renderer, scene, camera, currentLevel)
-}
-
-function clearScene(scene){
-    //clear scene
-    while(scene.children.length > 0) { 
-        scene.remove(scene.children[0]); 
-    }
-}
-
-function clearCamera(camera){
-    //clear camera
-    while(camera.children.length > 0) { 
-        camera.remove(camera.children[0]); 
-    }
-}
-
-
+/*  
+    Main entry point for the game. Loads level enviroment, initialises controls
+    and handles game loop
+*/
 function main(renderer, scene, camera, currentLevel){
     //load environment based on level
     let loadLevel;
@@ -122,17 +63,95 @@ function main(renderer, scene, camera, currentLevel){
             controls.lock()
         }
 
-        // initialise game logic (counters)
+        // initialise game logic (initialise key counters)
         gameInit(door, currentLevel)
 
         animate(renderer, scene, camera, objects, controls, currentLevel);
     });
 }
 
-export function isGameComplete(){
-    return gameComplete
+/*  
+    Handles animation/game loop. Updates player position every frame, and checks for interaction
+    with the door on level completion to trigger level transisition
+*/
+function animate(renderer, scene, camera, objects, controls, currentLevel) {
+    let animationId
+    let hitDoor = false
+
+    function loop() {
+        animationId = requestAnimationFrame(loop);
+        updatePosition(clock.getDelta(), controls, objects, camera, currentLevel) 
+
+        const levelComplete = isLevelComplete()
+
+        // if the level is complete, check is user walks into door
+        if(levelComplete){
+            hitDoor = checkDoorCollision()
+        }
+
+        renderer.render(scene, camera);
+
+        if (levelComplete && hitDoor) {
+            // Player walked into the active door - transition to next level
+            cancelAnimationFrame(animationId);
+            levelTransition(renderer, scene, camera, controls);
+            return;
+        }
+    }
+    loop();
 }
 
+/*  
+    Handles transitions to the next level. Clears the current scene, camera, resets controls,
+    before calling main to load in the next level
+*/
+function levelTransition(renderer, scene, camera, controls){
+
+    removeControls(controls)
+
+    clearScene(scene)
+    clearCamera(camera)
+
+    //stop sounds
+    stopWalkAudio()
+    stopBgAudio()
+
+    //increment level
+    currentLevel++
+
+    if (currentLevel > 2){
+        completeGame(controls)
+        return
+    }
+
+    //load next level
+    main(renderer, scene, camera, currentLevel)
+}
+
+/*  
+    Clears all objects within the current scene
+*/
+function clearScene(scene){
+    //clear scene
+    while(scene.children.length > 0) { 
+        scene.remove(scene.children[0]); 
+    }
+}
+
+/*  
+    Clears all objects attached to the camera (including sounds and player torch for 
+    level 1)
+*/
+function clearCamera(camera){
+    //clear camera
+    while(camera.children.length > 0) { 
+        camera.remove(camera.children[0]); 
+    }
+}
+
+/*  
+    Displays game-completion screen
+*/
 function completeGame(controls){
     gameComplete = true;
     controls.unlock()
@@ -140,4 +159,9 @@ function completeGame(controls){
     document.getElementById('instructions').style.display = 'none'
     document.getElementById('overlay').style.display = 'none'
     document.getElementById('game-complete').style.display = 'flex'
+}
+
+
+export function isGameComplete(){
+    return gameComplete
 }

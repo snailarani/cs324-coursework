@@ -1,9 +1,14 @@
 import { playDoorAudio } from "./sounds.js";
+
 let numKeys;
 let counter;
 let door;
 let levelcomplete = false;
 
+/*  
+    Initialises game logic, sets number of keys to be collected, sets key counter to 0,
+    and updates game UI at the beginning of each level
+*/
 export function gameInit(d, currentLevel){
     //initalise variables
     numKeys = (currentLevel==1) ? 12 : 25
@@ -29,6 +34,10 @@ export function gameInit(d, currentLevel){
 }
 
 
+/*  
+    Updates key counter whenever a key object is collected, removes the object from the 
+    scene, and updates the game UI
+*/
 export function collectKey(scene, object){
     //remove key from screen
     scene.remove(object.parent)
@@ -49,15 +58,22 @@ export function collectKey(scene, object){
     }
 }
 
-
+/*  
+    Updates the door material
+*/
 export function updateDoor(doorGroup){
     const door = doorGroup.getObjectByName('door')
     const knob = doorGroup.getObjectByName('doorKnob')
+
+    //make door colour white and shining
     door.material.color.set(0xffffff)
     door.material.emissive.set(0xffffff)
     door.material.emissiveIntensity = 0.8
+
+    //make knob invisible
     knob.visible = false
-    levelcomplete = true
+
+    //play door opening sound
     playDoorAudio()
 }
 

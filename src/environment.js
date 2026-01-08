@@ -1,7 +1,9 @@
 import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 import { makeMaterial, randomRGB } from './utils.js';
 
-
+/*  
+    Creates and returns a door object with custom materials
+*/
 export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, scale=1, rot=0){
     const doorGroup = new THREE.Group();
     doorGroup.rotateY(rot);
@@ -47,7 +49,9 @@ export function makeDoor(pos, doorMaterial, frameMaterial, doorknobMaterial, sca
     return doorGroup;
 }
 
-
+/*  
+    Creates and returns a floor object with custom materials
+*/
 export function makeFloor(y, size, material){
     const floorGeometry = new THREE.PlaneGeometry(size, size);
     floorGeometry.rotateX( - Math.PI / 2 );
@@ -58,7 +62,9 @@ export function makeFloor(y, size, material){
     return floor;
 }
 
-
+/*  
+    Creates and returns a wall object with custom materials
+*/
 export function makeWall(pos, width, height, depth, material){
     const wallGeometry = new THREE.BoxGeometry(width, height, depth);
 
@@ -70,7 +76,9 @@ export function makeWall(pos, width, height, depth, material){
     return wall;
 }
 
-
+/*  
+    Creates and returns a wall with a doorway object with custom materials
+*/
 export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHeight, material){
     const wallGroup = new THREE.Group();
     wallGroup.position.set(pos.x, pos.y, pos.z);
@@ -79,6 +87,7 @@ export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHe
     const rightWallW = leftWallW;
     const topWallH = height - doorHeight;
 
+    //doorway is made of three different wall objects
     const leftWall = makeWall(new THREE.Vector3(-(width/2 - leftWallW/2), -(height-doorHeight)/2, 0), leftWallW, doorHeight, depth, material);
     const rightWall = leftWall.clone()
     rightWall.position.set(width/2 - rightWallW/2, -(height-doorHeight)/2, 0)
@@ -95,6 +104,7 @@ export function makeWallWithDoorway(pos, width, height, depth, doorWidth, doorHe
 }
 
 
+// material for crates
 const crateMat = makeMaterial({
     textureSrc: 'assets/textures/crate2col.jpg',
     roughnessSrc: 'assets/textures/crate2rough.jpg',
@@ -103,6 +113,9 @@ const crateMat = makeMaterial({
     repeat: [1,1],
 })
 
+/*  
+    Creates and returns a crate object
+*/
 export function makeCrate(pos, width, height, depth, options = {}){
     const{
         lidOverhang = 0.04,
@@ -112,6 +125,7 @@ export function makeCrate(pos, width, height, depth, options = {}){
     const crateGroup = new THREE.Group();
     crateGroup.position.set(pos.x, pos.y, pos.z);
 
+    //main box
     const crateGeometry = new THREE.BoxGeometry(width, height, depth);
     const crate = new THREE.Mesh(crateGeometry, crateMat);
     crate.position.set(0, height/2 + lidThickness, 0); 
@@ -123,12 +137,14 @@ export function makeCrate(pos, width, height, depth, options = {}){
     const lidDepth = depth + lidOverhang * 2;
     const lidGeometry = new THREE.BoxGeometry(lidWidth, lidThickness, lidDepth);
 
+    //lid (top)
     const lidTop = new THREE.Mesh(lidGeometry, crateMat);
     lidTop.position.set(0, height+lidThickness, 0);
     lidTop.castShadow = true;
     lidTop.receiveShadow = true;
     crateGroup.add(lidTop);
 
+    //lid (bottom)
     const lidBot = lidTop.clone()
     lidBot.position.set(0, 0, 0);
     crateGroup.add(lidBot);
@@ -139,6 +155,9 @@ export function makeCrate(pos, width, height, depth, options = {}){
     return crateGroup;
 }
 
+/*  
+    Creates and returns a big crate object with a fixed size
+*/
 export function makeBigCrate(pos){
     return makeCrate(pos, 1.5, 1.2, 2.5, {
         lidOverhang: 0.08,
@@ -146,6 +165,9 @@ export function makeBigCrate(pos){
     });
 }
 
+/*  
+    Creates and returns a crate object with equal width/height/depth
+*/
 export function makeBoxCrate(pos, size){
     return makeCrate(pos, size, size, size, {
         lidOverhang: 0.05,
@@ -153,7 +175,9 @@ export function makeBoxCrate(pos, size){
     });
 }
     
-//TODO: Randomise
+/*  
+    Creates and returns a stack of crates
+*/
 export function makeCrateStack(pos, baseSize){
     const stackGroup = new THREE.Group();
     stackGroup.position.set(pos.x, pos.y, pos.z);
@@ -181,18 +205,20 @@ export function makeCrateStack(pos, baseSize){
 
 }
 
-
+/*  
+    Creates and returns a torch object, with a light source (point-light) attached
+*/
 export function createTorch(x, y, z, rotateY) {
   const torchGroup = new THREE.Group();
   torchGroup.position.set(x, y, z);
   torchGroup.rotateY(rotateY);
 
-  // Torch stick
+  //torch stick
   const stickGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8);
   const stickMaterial = makeMaterial({ color: 0x4a2511 });
   const stick = new THREE.Mesh(stickGeometry, stickMaterial);
   
-  // Flame
+  //flame
   const flameGeometry = new THREE.SphereGeometry(0.15, 16, 16);
   const flameMaterial = new THREE.MeshStandardMaterial({
     color: 0xff6600,
@@ -202,8 +228,8 @@ export function createTorch(x, y, z, rotateY) {
   const flame = new THREE.Mesh(flameGeometry, flameMaterial);
   flame.position.y = 0.3;
   
-  // Point light for light source
-  const light = new THREE.PointLight(0xff9944, 0.8, 5); // orange color, intensity, distance
+  //point light for light source
+  const light = new THREE.PointLight(0xff9944, 0.8, 5);
   light.position.y = 0.3;
   light.castShadow = true;
   
@@ -218,13 +244,15 @@ export function createTorch(x, y, z, rotateY) {
 }
 
 
-
-// level 2 objects
+/*  
+    Creates and returns a tree object
+*/
 export function createTree(pos, scale){
     const treeGroup = new THREE.Group();
     treeGroup.position.set(pos.x, pos.y, pos.z);
     treeGroup.scale.set(scale, scale, scale);
 
+    //tree trunk
     const trunkmaterial = makeMaterial({color: 0x452f29});
 
     const trunkGeometry = new THREE.CylinderGeometry(0.25, 0.25, 1, 16);
@@ -234,6 +262,7 @@ export function createTree(pos, scale){
     trunk.receiveShadow = true;
     treeGroup.add(trunk);
 
+    //tree foliage
     const treeMaterial = makeMaterial({
         color: 0x5aa1f2,
         metalness: 0.1,
@@ -250,12 +279,17 @@ export function createTree(pos, scale){
     return treeGroup;
 }
 
+/*  
+    Creates and returns a rock object with a light source (point light) attached
+*/
 export function createRock(pos, scale){
     const rockGroup = new THREE.Group();
     rockGroup.position.set(pos.x, pos.y, pos.z);
 
+    //random colour for each rock
     const randCol = randomRGB();
 
+    //rock object
     const rockMaterial = makeMaterial({color: randCol});
     rockMaterial.emissive = randCol;
     rockMaterial.emissiveIntensity = 0.3;
@@ -266,6 +300,7 @@ export function createRock(pos, scale){
     rock.position.set(0,0,0);
     rockGroup.add(rock);
 
+    //light source (pointlight)
     const light = new THREE.PointLight(randCol, 0.15, 1.5, 30); // blueish light
     light.position.set(0, scale/2, 0);
     light.castShadow = true;
@@ -274,19 +309,23 @@ export function createRock(pos, scale){
     return rockGroup;
 }
 
+/*  
+    Creates and returns an icicle object
+*/
 export function createIcicle(height = 1, radius = 0.1) {
-    const icicleGeo = new THREE.ConeGeometry(radius, height, 6, 1);
+    const icicleGeometry = new THREE.ConeGeometry(radius, height, 6, 1);
     
     const color = new THREE.Color();
-    const position = icicleGeo.attributes.position;
+    const position = icicleGeometry.attributes.position;
     const colorsIcicle = [];
     
+    //vetex colouring - give each icicle vertex (face) a random colour
     for (let i = 0, l = position.count; i < l; i++) {
         color.setHSL(Math.random() * 0.45 + 0.5, 0.55, Math.random() * 0.35 + 0.1, THREE.SRGBColorSpace);
         colorsIcicle.push(color.r, color.g, color.b);
     }
     
-    icicleGeo.setAttribute('color', new THREE.Float32BufferAttribute(colorsIcicle, 3));
+    icicleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsIcicle, 3));
     
     const icicleMat = new THREE.MeshStandardMaterial({
         vertexColors: true,
@@ -298,7 +337,7 @@ export function createIcicle(height = 1, radius = 0.1) {
         emissiveIntensity: 0.08,
     });
 
-    const icicle = new THREE.Mesh(icicleGeo, icicleMat);
+    const icicle = new THREE.Mesh(icicleGeometry, icicleMat);
     
     return icicle
 }

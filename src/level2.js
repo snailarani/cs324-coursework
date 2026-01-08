@@ -5,11 +5,19 @@ import * as Env from './environment.js';
 import { makeMaterial, loadObject } from './utils.js';
 import { initAudio, loadBgAudio, loadFloorAudio, loadKeyAudio, loadDoorAudio } from './sounds.js';
 
-const roomSize = 55
-const treeZone = 53
+//PoissonDiskSampling is a constructor taken from this library: https://github.com/kchapelier/poisson-disk-sampling
+//seedrandom is a function taken from this library: https://github.com/davidbau/seedrandom
+
+const roomSize = 55     //boundary box size
+const treeZone = 53     //tree placement boundaries
 const roomHeight = 5
 const wallThickness = 0.2
 
+
+/*  
+    Loads environment for level 2, including all objects in the scene, lighting, sounds
+    and setting the camera position
+*/
 export async function loadLevel2(scene, camera){
     const objects = []
 
@@ -36,6 +44,41 @@ export async function loadLevel2(scene, camera){
     return {objects, door}
 }
 
+
+/*  
+    Adds main light sources to level 2 scene
+*/
+function level2Lighting(scene){
+    //ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15)
+    scene.add(ambientLight)
+
+    //directional light (moonlight)
+    const dirLight = new THREE.DirectionalLight(0xA8CCFF, 0.4); //blue tint for moonlight
+    dirLight.position.set(0,10,3);
+    dirLight.castShadow = true;
+    dirLight.shadow.camera.left = -roomSize;
+    dirLight.shadow.camera.right = roomSize;
+    dirLight.shadow.camera.top = roomSize;
+    dirLight.shadow.camera.bottom = -roomSize;
+    dirLight.shadow.camera.far = 100;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.bias = -0.001;
+    scene.add(dirLight);
+
+    // hemisphere light (for aurora effect)
+    const hemisphereLight = new THREE.HemisphereLight(
+        0x7799cc,  
+        0x334455, 
+        0.3       
+    );
+    scene.add(hemisphereLight);
+}
+
+/*  
+    Adds the door to the level 2 scene
+*/
 function loadDoor(scene, objects){
     //door
     const doorMaterial = makeMaterial({
@@ -62,34 +105,10 @@ function loadDoor(scene, objects){
 }
 
 
-function level2Lighting(scene){
-    //ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15)
-    scene.add(ambientLight)
-
-    // moonlight - TODO: edit later
-    const dirLight = new THREE.DirectionalLight(0xA8CCFF, 0.4); //blue tint for moonlight
-    dirLight.position.set(0,10,3);
-    dirLight.castShadow = true;
-    dirLight.shadow.camera.left = -roomSize;
-    dirLight.shadow.camera.right = roomSize;
-    dirLight.shadow.camera.top = roomSize;
-    dirLight.shadow.camera.bottom = -roomSize;
-    dirLight.shadow.camera.far = 100;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.bias = -0.001;
-    scene.add(dirLight);
-
-    // hemisphere light (for aurora effect)
-    const hemisphereLight = new THREE.HemisphereLight(
-        0x7799cc,  
-        0x334455, 
-        0.3       
-    );
-    scene.add(hemisphereLight);
-}
-
+/*  
+    Adds all internal models to the level scene (by calling their factory functions
+    from the environment file)
+*/
 function level2Env(scene, objects){
     const envObjects =[];
 
@@ -101,6 +120,7 @@ function level2Env(scene, objects){
     const position = floorGeometry.attributes.position;
     const floorCols = [];
 
+    //vertex colouring - give each vertex a random colour in the blue-purple hue range
     for (let i = 0, l = position.count; i < l; i++) {
         color.setHSL(Math.random() * 0.35 + 0.5, 0.55, Math.random() * 0.5 + 0.1, THREE.SRGBColorSpace);
         floorCols.push(color.r, color.g, color.b);
@@ -157,7 +177,6 @@ function level2Env(scene, objects){
     envObjects.push(frontWall);
     envObjects.push(backWall);
 
-
     //trees - randomly placed with poisson dist
     const treePDS = new PoissonDiskSampling({
         shape: [treeZone-2, treeZone-2],      
@@ -168,8 +187,8 @@ function level2Env(scene, objects){
         seedrandom('level2'),  // for consistent placement
     );
 
+    //place trees
     let treePoints = treePDS.fill();
-
     let randScale;
     treePoints.forEach(point => {
         const treePos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
@@ -189,8 +208,8 @@ function level2Env(scene, objects){
         seedrandom('level2'),  
     );
 
+    //place rocks
     let rockPoints = rocksPDS.fill();
-
     rockPoints.forEach(point => {
         const rockPos = new THREE.Vector3(point[0]-treeZone/2, 0, point[1]-treeZone/2);
         randScale = Math.random() * 0.4 + 0.7;
@@ -205,7 +224,7 @@ function level2Env(scene, objects){
         envObjects.push(icicle)
     });
 
-    
+    //add all objects to the scene
     envObjects.forEach(function (object) {
         scene.add(object);
         objects.push(object)
@@ -213,6 +232,9 @@ function level2Env(scene, objects){
 
 }
 
+/*  
+    Adds external models to the level 2 scene
+*/
 async function loadExtModels(scene, objects){
     const envObjects =[];
     
@@ -292,6 +314,7 @@ async function loadExtModels(scene, objects){
         envObjects.push(candy)
     }
 
+    //add all objects to the scene
     envObjects.forEach(function (object) {
         scene.add(object);
         objects.push(object)
@@ -299,22 +322,26 @@ async function loadExtModels(scene, objects){
 
 }
 
+/*  
+    Places icicle objects around the perimeter of the level boundary
+*/
 function addIcicles(count) {
     const iceRng = seedrandom('icicles')
     const icicles = []
     
     for (let i = 0; i < count; i++) {
+        //give each icicle a randomr height and radius
         const height = 4 + iceRng() * 15
         const radius = 0.5 + iceRng() * 2.5
         const icicle = Env.createIcicle(height, radius)
         
         //make icicles around perimeter of scene
-        const angle = iceRng() * Math.PI * 2
+        const angle = iceRng() * Math.PI * 2 
         const distance = (treeZone/2+5) + iceRng() * 25
         
         icicle.position.set(Math.cos(angle) * distance, height / 2, Math.sin(angle) * distance);
         
-        //random tilt
+        //give each icicle a random tilt/rotation
         icicle.rotateZ((iceRng() - 0.5) * 0.2)
         icicle.rotateX((iceRng() - 0.5) * 0.2)
         
@@ -323,7 +350,9 @@ function addIcicles(count) {
     return icicles
 }
 
-
+/*  
+    Loads sounds for level 1
+*/
 async function loadSounds(){
     const music = await loadBgAudio('./assets/audio/music.mp3', {loop:true, volume:0.15});
     const wind = await loadBgAudio('./assets/audio/wind.mp3', {loop:true, volume:1.3});

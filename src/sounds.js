@@ -8,7 +8,9 @@ let coinAudio;
 let doorAudio;
 let listener;
 
-// set up listener for scene
+/*  
+    Initialises audio listener and attaches it to the camera
+*/
 export function initAudio(camera){
     bgAudio = [];
 
@@ -16,27 +18,9 @@ export function initAudio(camera){
     camera.add(listener)
 }
 
-export async function loadBgAudio(src, options){
-    const audio = await loadAudio(src, listener, options)
-    bgAudio.push(audio)
-    return audio
-}
-
-export async function loadFloorAudio(src, options){
-    walkAudio = await loadAudio(src, listener, options)
-    return walkAudio
-}
-
-export async function loadKeyAudio(src, options){
-    coinAudio = await loadAudio(src, listener, options)
-    return coinAudio
-}
-
-export async function loadDoorAudio(src, options){
-    doorAudio = await loadAudio(src, listener, options)
-    return doorAudio
-}
-
+/*  
+    Loads an audio file to be played in a scene
+*/
 export async function loadAudio(src, listener, options={}) {
     const {
         loop = false,
@@ -46,13 +30,51 @@ export async function loadAudio(src, listener, options={}) {
     const audio = new THREE.Audio(listener);
     const audioBuffer = await audioLoader.loadAsync(src);
     audio.setBuffer(audioBuffer);
+
+    // configures play options
     audio.setLoop(loop);
     audio.setVolume(volume);
 
     return audio;
 }
 
+/*  
+    Loads background audio(s)
+*/
+export async function loadBgAudio(src, options){
+    const audio = await loadAudio(src, listener, options)
+    bgAudio.push(audio)
+    return audio
+}
 
+/*  
+    Loads floor (walking) audio
+*/
+export async function loadFloorAudio(src, options){
+    walkAudio = await loadAudio(src, listener, options)
+    return walkAudio
+}
+
+/*  
+    Loads key collection audio
+*/
+export async function loadKeyAudio(src, options){
+    coinAudio = await loadAudio(src, listener, options)
+    return coinAudio
+}
+
+/*  
+    Loads door open audio
+*/
+export async function loadDoorAudio(src, options){
+    doorAudio = await loadAudio(src, listener, options)
+    return doorAudio
+}
+
+
+/*  
+    Plays all background audio tracks
+*/
 export function playBgAudio() {
     bgAudio.forEach(function (audio) {
         if (!audio.isPlaying){
@@ -61,6 +83,9 @@ export function playBgAudio() {
     });
 }
 
+/*  
+    Pauses all background audio tracks
+*/
 export function pauseBgAudio() {
     bgAudio.forEach(function (audio) {
         if (audio.isPlaying){
@@ -69,6 +94,9 @@ export function pauseBgAudio() {
     });
 }
 
+/*  
+    Stops all background audio tracks
+*/
 export function stopBgAudio() {
     bgAudio.forEach(function (audio) {
         if (audio.isPlaying){
@@ -77,19 +105,27 @@ export function stopBgAudio() {
     });
 }
 
-
+/*  
+    Plays walking audio track
+*/
 export function playWalkAudio() {
     if (!walkAudio.isPlaying){
         walkAudio.play();
     }
 }
 
+/*  
+    Stops walking audio track
+*/
 export function stopWalkAudio() {
     if (walkAudio.isPlaying){
         walkAudio.stop();
     }
 }
 
+/*  
+    Plays pick up coin audio track
+*/
 export function playCoinAudio() {
     if (coinAudio) {
         coinAudio.stop();
@@ -97,6 +133,9 @@ export function playCoinAudio() {
     }
 }
 
+/*  
+    Plays door audio track
+*/
 export function playDoorAudio() {
     if (doorAudio) {
         doorAudio.stop();

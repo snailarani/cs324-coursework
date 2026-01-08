@@ -7,6 +7,10 @@ const roomSize = 18;
 const roomHeight = 4;
 const wallThickness = 0.2;
 
+/*  
+    Loads environment for level 1, including all objects in the scene, lighting, sounds
+    and setting the camera position
+*/
 export async function loadLevel1(scene, camera){
     const objects = [];
 
@@ -33,9 +37,10 @@ export async function loadLevel1(scene, camera){
 }
 
 
-
+/*  
+    Adds main light sources to level 1 scene
+*/
 function level1Lighting(scene, camera){
-    //ambient light TODO: set to 0.03
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.03)
     scene.add(ambientLight)
 
@@ -56,6 +61,10 @@ function level1Lighting(scene, camera){
     torch.target = torchTarget;
 }
 
+
+/*  
+    Adds the door to the level 1 scene
+*/
 function loadDoor(scene, objects){
     // door
     const doorMat = makeMaterial({
@@ -85,6 +94,10 @@ function loadDoor(scene, objects){
 
 }
 
+/*  
+    Adds all internal models to the level scene (by calling their factory functions
+    from the environment file)
+*/
 function level1Env(scene, objects){
     const envObjects =[];
 
@@ -97,7 +110,7 @@ function level1Env(scene, objects){
     envObjects.push(floor);
 
 
-    //roof TODO:add back
+    //roof
     const roofMaterial = makeMaterial({
         textureSrc: 'assets/textures/shipwallcol.jpg',
         repeat: [5,5],
@@ -142,7 +155,6 @@ function level1Env(scene, objects){
 
     envObjects.push(innerWall1)
     envObjects.push(innerWall2)
-
 
     const doorway1 = Env.makeWallWithDoorway(new THREE.Vector3(-roomSize/6, roomHeight/2, roomSize/3), roomSize/3, roomHeight, wallThickness, 2.5, 3, wallMaterial);
     doorway1.rotateY(- Math.PI / 2);
@@ -231,6 +243,7 @@ function level1Env(scene, objects){
     envObjects.push(torch2)
     envObjects.push(torch3)
      
+    //add all objects to the scene
     envObjects.forEach(function (object) {
         scene.add(object);
         objects.push(object)
@@ -238,9 +251,11 @@ function level1Env(scene, objects){
 }
 
 
+/*  
+    Adds external models to the level 1 scene
+*/
 async function loadExtModels(scene, objects){
     const envObjects =[];
-    //exported models
 
     //bed
     const bed = await loadObject('./assets/models/bed/bed.obj', './assets/models/bed/bed.mtl', new THREE.Vector3(roomSize/3+1,0,roomSize/2-2.5), Math.PI, 0.045)
@@ -266,7 +281,7 @@ async function loadExtModels(scene, objects){
     envObjects.push(chest3)
     envObjects.push(chest4)
 
-    //coins - might have seperate function for collectibles
+    //coins
     const coinObjSrc = './assets/models/key1/coin.obj'
     const coinObjMtl = './assets/models/key1/coin.mtl'
     const coinPos = [
@@ -295,21 +310,23 @@ async function loadExtModels(scene, objects){
         envObjects.push(coin)
     }
 
+    //add all objects to the scene
     envObjects.forEach(function (object) {
         scene.add(object);
         objects.push(object)
     });
 }
 
+/*  
+    Loads sounds for level 1
+*/
 async function loadSounds() {
     const storm = await loadBgAudio('./assets/audio/storm.mp3', {loop:true, volume:0.4});
-    const waves = await await loadBgAudio('./assets/audio/waves.mp3', {loop:true, volume:0.3});
+    const waves = await loadBgAudio('./assets/audio/waves.mp3', {loop:true, volume:0.3});
     const floor = await loadFloorAudio('./assets/audio/floor1.mp3', {loop:true, volume:1.1});
     const door = await loadKeyAudio('./assets/audio/keys1.wav', {volume:1.5});
     const keys = await loadDoorAudio('./assets/audio/door1.wav', {volume:1.3});
 }
-
-//TODO: add particles to flames
 
 
 

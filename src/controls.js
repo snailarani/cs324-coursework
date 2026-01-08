@@ -4,12 +4,15 @@ import { collectKey } from "./gameLogic.js"
 import { isGameComplete } from "./main.js";
 import { playBgAudio, pauseBgAudio, playWalkAudio, stopWalkAudio, playCoinAudio } from "./sounds.js";
 
-//TODO: loading screen
 let onClickLock
 let onKeyDown
 let onKeyUp
 let onClickPickUp
 
+
+/*
+    makes all user controls and adds them to the canvas
+*/
 export function makeControls(camera, scene, currentLevel){
     //pointer lock
     const pointerLock = makePointerLock(camera)
@@ -22,9 +25,10 @@ export function makeControls(camera, scene, currentLevel){
 
     //pick up coins
     onClickPickUp = function(){
-        pickUpCoin(pointerLock, camera, scene, currentLevel)
+        pickUpKey(pointerLock, camera, scene, currentLevel)
     };
 
+    //add binds to canvas
     document.addEventListener('click', onClickLock);
     document.addEventListener('click', onClickPickUp);
     document.addEventListener('keydown', onKeyDown);
@@ -33,7 +37,10 @@ export function makeControls(camera, scene, currentLevel){
     return pointerLock
 }
 
-//remove controls from screen
+
+/*
+    remove controls from canvas
+*/
 export function removeControls(controls) {
     document.removeEventListener('click', onClickLock);
     document.removeEventListener('click', onClickPickUp);
@@ -49,6 +56,9 @@ export function removeControls(controls) {
 }
 
 
+/*
+    creates pointer lock controls to lock cursor to screen center
+*/
 function makePointerLock(camera){
     const pointerLock = new PointerLockControls( camera, document.body );
 
@@ -73,7 +83,6 @@ function makePointerLock(camera){
             blocker.style.display = 'none';
             instructions.style.display = 'none';
         }
-
         pauseBgAudio();
         stopWalkAudio();
     } );
@@ -88,10 +97,14 @@ let moveRight = false;
 let moveLeft = false;
 
 
+/*
+    defines keyboard movement controls
+*/
 function makeKeyBinds(controls){
     //Movement
     const onKeyDown = function (event){
 
+        //don't move if the screen is locked (prevents sliding/drifting)
         if (!controls.isLocked) return;
 
         switch(event.code){
@@ -135,6 +148,7 @@ function makeKeyBinds(controls){
                 break;
         }
 
+        //play floor audio if any movement occurs
         if (!moveForward && !moveBackward && !moveLeft && !moveRight) {
             stopWalkAudio();
         }
@@ -147,7 +161,10 @@ function makeKeyBinds(controls){
 const clickRay = new THREE.Raycaster();
 const maxClickDist = 10;
 
-function pickUpCoin(controls, camera, scene, currentLevel){
+/*
+    defines click action to pick up key object
+*/
+function pickUpKey(controls, camera, scene, currentLevel){
     if (!controls.isLocked){
         return
     }
@@ -169,7 +186,7 @@ function pickUpCoin(controls, camera, scene, currentLevel){
 
     let intersections = clickRay.intersectObjects(scene.children, true);
 
-    // get first object hit, if its a coin remove from scene
+    // get first object hit, if its a key remove from scene
     const intersection = intersections[0]
     if (intersection!=null){
         const object = intersection.object
@@ -199,6 +216,10 @@ let rayX = new THREE.Raycaster();
 rayX.near = 0
 rayX.far = playerRadius
 
+
+/*
+    updates player position each frame
+*/
 export function updatePosition(delta, controls, objects, camera, currentLevel){
 
     //ignore large deltas
@@ -248,13 +269,15 @@ export function updatePosition(delta, controls, objects, camera, currentLevel){
 
     //if moving forward, raycast forward/backwards
     if (velocity.z != 0) {
-        const directionZ = -Math.sign(velocity.z);
+        const directionZ = -Math.sign(velocity.z);  //ray points forward/backward
 
+        //get player position to set ray origin
         rayZ.ray.origin.copy(playerPos);
         rayZ.ray.origin.y -= rayOffset;
 
         rayZ.ray.direction.copy(rayZDir).multiplyScalar(directionZ);
 
+        //check for intersection objects
         intersectionsZ = rayZ.intersectObjects(objects, true);
         blockedZ = intersectionsZ.length > 0;
     }
@@ -267,13 +290,15 @@ export function updatePosition(delta, controls, objects, camera, currentLevel){
 
     //if moving left/right, raycast left/right
     if (velocity.x != 0) {
-        const directionX = -Math.sign(velocity.x);
+        const directionX = -Math.sign(velocity.x); //ray points left/right
 
+        //get player position to set ray origin
         rayX.ray.origin.copy(playerPos);
         rayX.ray.origin.y -= rayOffset;
 
         rayX.ray.direction.copy(rayXDir).multiplyScalar(directionX);
 
+        //check for intersection objects
         intersectionsX = rayX.intersectObjects(objects, true);
         blockedX = intersectionsX.length > 0;
     }

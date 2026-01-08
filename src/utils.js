@@ -11,6 +11,7 @@ const textureLoader = new THREE.TextureLoader();
 const textureCache = new Map();
 
 
+//Creates a THREE.js MeshStandardMaterial to apply to model meshes
 export function makeMaterial(options = {}){
     const{
         color = 0xffffff,
@@ -52,6 +53,7 @@ export function makeMaterial(options = {}){
     return material;
 }
 
+//loads textures from caches (or creates a new one and stores it if necessary)
 function loadTexture(src, repeat){
     const key = src + repeat.toString(); //have to store different textures if they are modified
 
@@ -69,13 +71,12 @@ function loadTexture(src, repeat){
     return texture;
 }
 
+
+//returns a random RGB colou
 export function randomRGB(){
-    const rRange =[0,255];
-    const gRange =[0,255];
-    const bRange =[0,255];
-    const r = Math.floor(Math.random()*(rRange[1]-rRange[0])+rRange[0]);
-    const g = Math.floor(Math.random()*(gRange[1]-gRange[0])+gRange[0]);
-    const b = Math.floor(Math.random()*(bRange[1]-bRange[0])+bRange[0]);
+    const r = Math.floor(Math.random()*(255));
+    const g = Math.floor(Math.random()*(255));
+    const b = Math.floor(Math.random()*(255));
     return new THREE.Color(r/255, g/255, b/255);
 }
 
@@ -84,7 +85,10 @@ export function randomRGB(){
 const objLoader = new OBJLoader();
 const matLoader = new MTLLoader()
 
+//loads an obj file as a THREE.js object type
 export async function loadObject(src, materialsrc, pos, rotation=0, scale=1, setCollider=true){
+
+    //load mtl file
     const material = await matLoader.loadAsync( materialsrc );
     objLoader.setMaterials( material );
 
@@ -106,7 +110,7 @@ export async function loadObject(src, materialsrc, pos, rotation=0, scale=1, set
 
         collider.position.copy(center);
 
-        //Attach collider to model (so it moves with it)
+        //attach collider to model
         object.add(collider);
         collider.position.sub(object.position);
     }
